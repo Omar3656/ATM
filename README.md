@@ -1,1 +1,1 @@
-# Calculadora-de-Trayectoria-Bal-stica
+Calculadora de Trayectoria Balística
