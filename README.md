@@ -16,8 +16,7 @@ Inputs:
 -Selected option from the main menu
 -Amount of cash to withdraw 
 -Amount of cash to deposit
--New PIN for PIN change operations.
--Confirmacion
+-New PIN for PIN change operations
 -Confirmation/Cancel/Return option
 -New PIN confirmation
 
@@ -39,7 +38,7 @@ Main Navigation Menu:
 
 Main ATM processes:
 Balance inquiry: Display the current balance --> Go to Menu
-Withdrawal: Ask for the money to be withdrawn -> Validate if quantity is positive, multiple of $50, exceeds the balance and if ATM has the cash needed (If the conditionals are correct, keep going, otherwise, error message & go back to menu) -> Ask for confirmation -> Calculate the optimus combination of cash to be withdrawn (from higher to smaller denomination) -> Upgrade the ATM cash storage -> Upgrade user´s balance -> Register the transaction -> Display withdrawn money   -> Go to menu
+Withdrawal: Ask for the money to be withdrawn -> Validate if quantity is positive, multiple of $50, does not exceeds the balance and if ATM has the cash needed (If the conditionals are correct, keep going, otherwise, error message & go back to menu) -> Ask for confirmation -> Calculate the optimus combination of cash to be withdrawn (from higher to smaller denomination) -> Upgrade the ATM cash storage -> Upgrade user´s balance -> Register the transaction -> Display withdrawn money   -> Go to menu
 Deposit: Ask for the money to be deposited -> Validate if its positive(If its positive, keep going, otherwise, error message & go back to menu) -> Ask for confirmation -> Update user´s balance -> Register the transaction -> Display deposited money -> Show remaining balance --> Go to menu
 PIN change: Ask for the current PIN -> Ask for the new PIN -> Ask for the confirmation (If its correct, keep going, otherwise, error message & go back to menu) -> Upgrade PIN -> Go to Menu
 Operations History: Display the transaction history
