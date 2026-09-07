@@ -48,4 +48,4 @@ Outputs:
 -Current user´s balance
 -Messages of the operations for the user (Error messages, Operation messages, Confirmation messages)
 -Transaction history
--Withdrawn/Deposited cash
+-Withdrawn/Deposited cash.
