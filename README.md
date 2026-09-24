@@ -1,16 +1,16 @@
-ATM
+# ATM
 
-CONTEXT:
+## Context:
 
 Automatic Teller Machines (ATMs) are essential components of modern financial infrastructure, used daily for many bank operations such as balance inquiries, deposit & withdrawals of cash, and transactions. Despite their frequent use, the operations and processes behind these machines are not often wondered by people.
 
 The objective of this project is to develop a functional ATM UI simulation that models both user-facing operations and its internal operation logic. Some of the features I want to include are: user authentication, transaction logging (history), real-time cash inventory, optimal bank-note dispensation algorithm (handling $50, $100, $200, and $500 denominations based on available physical stock), and an operation to change your current PIN to a new one.
 
-ALGORITHM:
+## Algorithm:
 
 The internal ATM digital system will already include the correct information such as the determined account number, the correct NIP for each account number, the available cash that the user has and the current storage of cash that the ATM has. Also, it´ll include a security system of PIN attempts and a timer will start at the beggining of a new account session, if the user does not interact with the UI the session will end
 
-Inputs:
+### Inputs:
 -User Account Number
 -Account Number PIN
 -Selected option from the main menu
@@ -20,7 +20,7 @@ Inputs:
 -Confirmation/Cancel/Return option
 -New PIN confirmation
 
-Process:
+### Process:
 
 User´s authentication:
 -Ask for the account Number
@@ -44,7 +44,7 @@ PIN change: Ask for the current PIN -> Ask for the new PIN -> Ask for the confir
 Transactions History: Display the transaction history
 Exit: Ends the session 
 
-Outputs:
+### Outputs:
 -Current user´s balance
 -Messages of the operations for the user (Error messages, Operation messages, Confirmation messages)
 -Transaction history
