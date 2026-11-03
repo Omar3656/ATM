@@ -17,147 +17,111 @@ cash, change their PIN, and review their transaction history.
 def menu():
     print("\n1)Consult Balance\n2)Withdraw Cash\n3)Deposit Cash\n4)PIN Change\n5)Transaction History\n6)Check current cash in the ATM\n7)Exit\n")
 
-def consult_balance(access):
+def consult_balance(data, access):
     """
-    Inputs: The user
+    Inputs: The accounts data and the user
     Outputs: The user´s balance
     Process:
-    -If the user is Pedro, it will return Pedro´s balance
-    -If the user is Alberto, it will return Alberto´s balance
+    -It will look for the user in the accounts data
+    -It will return the balance of that user
     """
-    if access == user_1:
-        return balance_1
-    else:
-        return balance_2
-    
-def atm_total_cash(cash_500, cash_200, cash_100, cash_50, cash_20):
+    return data[access][2]
+
+def atm_total_cash(bills_denominations, bills_quantity):
     """
-    Inputs: Total bills of 500, 200, 100, 50 and 20
+    Inputs: List of the bills denominations (500, 200, 100, 50 and 20) and list of the quantity of each bill
     Outputs: ATM current cash
     Process:
-    -The current cash = bills of 500 * 500 + bills of 200 * 200 + bills of 100 * 100 + bills of 50 * 50 + bills of 20 * 20
+    -The current cash starts in 0
+    -For each bill, current cash = current cash + denomination of the bill * quantity of the bill
     -It will return the current Cash
     """
-    current_cash = cash_500 * 500 + cash_200 * 200 + cash_100 * 100 + cash_50 * 50 + cash_20 * 20
+    current_cash = 0
+    for i in range(len(bills_denominations)):
+        current_cash = current_cash + bills_denominations[i] * bills_quantity[i]
     return current_cash
-    
-def authentication(account_number_1, account_number_2, account_pin_1, account_pin_2, blocked_1, blocked_2):
+
+def authentication(data):
     """
-    Inputs: account_pin_1, account_pin_2, blocked_1, blocked_2, account number, account PIN
-    Outputs: user_1, user_2, or False
+    Inputs: The accounts data, account number, account PIN
+    Outputs: The user (position of the account in the data) or -1
     Process:
     -Asks the user for an account number
+    -Validates if the account number only has digits
     -Validates if the account exists and if it is not blocked
     -Asks for the account PIN and gives up to 3 attempts
     -Returns the corresponding user if the PIN is correct
-    -Blocks the account and returns False if attempts reach 0
+    -Blocks the account and returns -1 if the attempts are 0
     """
-    attempts = 3
     while True:
-        account_number = int(input("Account number: "))
-        while True:
-            if account_number == account_number_1:
-                while 1<= attempts <= 3 and blocked_1 == False:
-                    account_pin = int(input("Account PIN: "))
-                    if account_pin == account_pin_1:
-                        return user_1
-                    else:
-                        attempts = attempts - 1
-                        if attempts == 0:
-                            blocked_1 = True
-                            return False
-                        else:
-                            print("INCORRECT PIN, you have", attempts, " left")
-                            break
-            elif account_number == account_number_2:
-                while 1<= attempts <= 3 and blocked_2 == False:
-                    account_pin = int(input("Account PIN: "))
-                    if account_pin == account_pin_2:
-                        return user_2
-                    else:
-                        attempts = attempts - 1
-                        if attempts == 0:
-                            blocked_2 = True
-                            return False
-                        else:
-                            print("INCORRECT PIN, you have", attempts, " left")
-                            break
-            else:
-                print("Account number does not exist in data")
-                break
-            
-def main():
-    print("ATM\n\nWELCOME\n")
-    while True:
-        access = authentication(account_number_1, account_number_2, account_pin_1, account_pin_2, blocked_1, blocked_2)
-        if access == user_1:
-            print("\nWelcome Back,", user_1)
-            menu()
-            while True:
-                option = int(input("Choose an option: "))
-                match option:
-                    case 1:
-                        print("Your balance is:", consult_balance(access), "pesos")
-                    case 2:
-                        print("Withdraw Cash")
-                    case 3:
-                        print("Deposit Cash")
-                    case 4:
-                        print("PIN Change")
-                    case 5:
-                        print("Transaction History")
-                    case 6:
-                        print("The total cash is:", atm_total_cash(cash_500, cash_200, cash_100, cash_50, cash_20))
-                    case 7:
-                        break
-                    case _:
-                        print("Invalid Option")
-        elif access == user_2:
-            print("\nWelcome Back,", user_2)
-            menu()
-            while True:
-                option = int(input("Choose an option: "))
-                match option:
-                    case 1:
-                        print("Your balance is:", consult_balance(access), "pesos")
-                    case 2:
-                        print("Withdraw Cash")
-                    case 3:
-                        print("Deposit Cash")
-                    case 4:
-                        print("PIN Change")
-                    case 5:
-                        print("Transaction History")
-                    case 6:
-                        print("The total cash is:", atm_total_cash(cash_500, cash_200, cash_100, cash_50, cash_20))
-                    case 7:
-                        break
-                    case _:
-                        print("Invalid Option")
+        account_number = input("Account number: ")
+        pin = -1
+        user = -1
+        attempts = 3
+        if account_number.isdigit() == False:
+            print("Invalid account number\n")
         else:
-            print("Session Ended")
-        
-#User 1 information 
-account_number_1 = 86547234
-account_pin_1 = 1234
-balance_1 = 7337
-attempts_1 = 3
-blocked_1=False
-user_1 = "PEDRO"
+            account_number = int(account_number)
+            while True:
+                for i in range(len(data)):
+                    if account_number == data[i][0]:
+                        user = i
+                        break
+                if user == -1:
+                    print("Account number does not exist in data\n")
+                    break
+                if data[user][3] == True:
+                    print("Account Blocked\n")
+                    break
+                while 1<= attempts <= 3 and data[user][3] == False:
+                    account_pin = input("\nAccount PIN: ")
+                    for j in range(1):
+                        if account_pin.isdigit() and int(account_pin) == data[user][1]:
+                            return user
+                    if pin == -1:
+                        attempts = attempts - 1
+                        if attempts == 0:
+                            data[user][3] = True
+                            return -1
+                        print("Incorrect PIN, you have", attempts, "left")
+                        break
 
-#User 2 information
-account_number_2 = 92341234
-account_pin_2 = 4321
-balance_2 = 14356
-attempts_2 = 3
-blocked_2=False
-user_2 = "ALBERTO"
-
-    #Current cash in the ATM
-cash_500 = 6
-cash_200 = 13
-cash_100 = 27
-cash_50 = 41
-cash_20 = 20
+def main():
+    data = [
+        #Account Number, PIN, Balance, Blocked, Name
+        [86547234, 1234, 18337, False, "PEDRO"],
+        [92341234, 4321, 14356, False, "ALBERTO"]
+    ]
+    bills_denominations = [500, 200, 100, 50, 20]
+    bills_quantity = [6, 13, 27, 41, 20]
+    while True:
+        print("ATM\n\nWELCOME\n")
+        access = authentication(data)
+        if access != -1:
+            print("\nWelcome Back,", data[access][4])
+            menu()
+            while True:
+                option = input("Choose an option: ")
+                if option.isdigit():
+                    option = int(option)
+                match option:
+                    case 1:
+                        print("Your balance is:", consult_balance(data, access), "pesos")
+                    case 2:
+                        print("Withdraw Cash")
+                    case 3:
+                        print("Deposit Cash")
+                    case 4:
+                        print("PIN Change")
+                    case 5:
+                        print("Transaction History")
+                    case 6:
+                        print("The total cash is:", atm_total_cash(bills_denominations, bills_quantity))
+                    case 7:
+                        break
+                    case _:
+                        print("Invalid Option")
+        elif access == -1:
+            print("Account Blocked\n")
 
 main()
