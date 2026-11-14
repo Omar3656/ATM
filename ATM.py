@@ -14,114 +14,284 @@ the account on failure. Once inside, a menu lets them check their balance, depos
 cash, change their PIN, and review their transaction history.
 """
 
-def menu():
+import random
+
+def menu1():
+    print("\n1) Log in\n2) Register\n3) Exit\n")
+
+def menu2():
     print("\n1)Consult Balance\n2)Withdraw Cash\n3)Deposit Cash\n4)PIN Change\n5)Transaction History\n6)Check current cash in the ATM\n7)Exit\n")
 
-def consult_balance(data, access):
+def consult_balance(data, user): 
     """
-    Inputs: The accounts data and the user
+    Inputs: The user
     Outputs: The user´s balance
     Process:
-    -It will look for the user in the accounts data
-    -It will return the balance of that user
+    -If the user is Pedro, it will return Pedro´s balance
+    -If the user is Alberto, it will return Alberto´s balance
     """
-    return data[access][2]
+    balance = data[user][2]
+    print("\nYour balance is", "$"+str(balance), "pesos\n" )
 
-def atm_total_cash(bills_denominations, bills_quantity):
+def withdraw_cash(data, user, bills_denominations, bills_quantity):
+    balance = data[user][2]
+    if balance < 50:
+        print("Your balance is not enough to make a withdrawal")
+        return
+    while True:
+        withdraw = input("Amount of money to be withdrawn: $")
+        withdraw_filter = withdraw.strip().replace(" ", "").replace(",", "").replace("$" , "")
+        if withdraw_filter.isdigit() == False:
+            print("Only digits are accepted")
+        else:
+            withdraw = int(withdraw_filter)
+            if withdraw <= 0:
+                print("Amount must be greater than 0")
+            elif withdraw > balance:
+                print("Amount to be withdrawn exceeds your balance")
+            elif withdraw % 50 != 0:
+                print("Amount needs to be multiple of 50")
+            elif withdraw > atm_total_cash_SUM(bills_denominations, bills_quantity):
+                print("Amount exceeds the total cash available in the ATM")
+            else:
+                break
+    total_withdrawn_bills = []
+    remaining_cash = withdraw
+    for i in range(len(bills_denominations)):
+        bills_required = remaining_cash // bills_denominations[i]
+        bills = min(bills_required, bills_quantity[i])
+        total_withdrawn_bills.append(bills)
+        remaining_cash = remaining_cash - bills * bills_denominations[i] 
+    if remaining_cash == 0:
+        message = "Are you sure you want to withdraw this quantity?: $"+str(withdraw)+" pesos"
+        if keep_going(message) == True:
+            new_balance = balance - withdraw
+            for j in range(len(bills_denominations)):
+                new_bills_quantity = bills_quantity[j] - total_withdrawn_bills[j]
+                bills_quantity[j] = new_bills_quantity
+            data[user][2] = new_balance
+            print("You have withdrawn:")
+            for k in range(len(total_withdrawn_bills)):
+                if total_withdrawn_bills[k] > 0:
+                    print("-", total_withdrawn_bills[k], "bills of", "$"+str(bills_denominations[k]))
+            print("TOTAL:", "$"+str(withdraw), "pesos")
+        else:
+            print("OPERATION CANCELLED")
+            return
+    else:
+        print("The ATM cannot dispense that exact amount")
+        return
+        
+def deposit_cash(data, user):
+    balance = data[user][2]
+    deposit = float(input("Amount of money to be deposited: $"))
+    new_balance = balance + deposit
+    data[user][2] = new_balance
+    return deposit
+
+def PIN_change(data, user):
+    pin = input("Current PIN: ").strip().replace(" ", "")
+    if pin != data[user][1]:
+        print("Incorrect PIN")
+        return
+    pin_creation_tips()
+    print("-Avoid using your current PIN")
+    while True:
+        new_pin = input("New PIN: ").strip().replace(" ", "")
+        if new_pin.isdigit() == True and new_pin != pin and len(new_pin) == 4:
+            if is_pin_weak(new_pin) == False:
+                new_pin_confirmation = input("New PIN confirmation: ").strip().replace(" ", "")
+                if new_pin != new_pin_confirmation:
+                    print("New PIN needs to be the same that the new PIN confirmation")
+                else:
+                    data[user][1] = new_pin
+                    print("PIN changed successfully!")
+                    return 
+            else:
+                print("Your PIN is too easy to guess, please check the tips above")
+        else:
+            print("\nInvalid PIN")
+
+def atm_total_cash_SUM(bills_denominations, bills_quantity):
     """
-    Inputs: List of the bills denominations (500, 200, 100, 50 and 20) and list of the quantity of each bill
+    Inputs: Total bills of 500, 200, 100, 50 and 20
     Outputs: ATM current cash
     Process:
-    -The current cash starts in 0
-    -For each bill, current cash = current cash + denomination of the bill * quantity of the bill
+    -The current cash = bills of 500 * 500 + bills of 200 * 200 + bills of 100 * 100 + bills of 50 * 50 + bills of 20 * 20
     -It will return the current Cash
     """
-    current_cash = 0
-    for i in range(len(bills_denominations)):
-        current_cash = current_cash + bills_denominations[i] * bills_quantity[i]
-    return current_cash
+    total_cash = 0
+    for i in range(len(bills_quantity)):
+        total_cash = total_cash + bills_quantity[i]*bills_denominations[i]
+    return total_cash
+
+def atm_total_cash_SHOW(bills_denominations, bills_quantity):
+    print("The total cash in the ATM is:\n")
+    for i in range(len(bills_quantity)):
+        print("-", bills_quantity[i], "bills of", "$"+str(bills_denominations[i]), "\n")
+    print("TOTAL:", "$"+str(atm_total_cash_SUM(bills_denominations, bills_quantity)), "\n")
 
 def authentication(data):
     """
-    Inputs: The accounts data, account number, account PIN
-    Outputs: The user (position of the account in the data) or -1
+    Inputs: account_pin_1, account_pin_2, account number, account PIN, blocked_1, blocked_2
+    Outputs: user_1, user_2, "Account 1 blocked", "Account 2 blocked"
     Process:
     -Asks the user for an account number
-    -Validates if the account number only has digits
     -Validates if the account exists and if it is not blocked
     -Asks for the account PIN and gives up to 3 attempts
     -Returns the corresponding user if the PIN is correct
-    -Blocks the account and returns -1 if the attempts are 0
+    -Returns the text of "Account 1 Blocked or "Account 2 Blocked" if the attempts are 0
     """
+    print("\nHello there!!")
+    print("-Remember that your account number has 16 digits\n-Do NOT use special characters other than '-' or blank spaces")
     while True:
-        account_number = input("Account number: ")
-        pin = -1
         user = -1
         attempts = 3
-        if account_number.isdigit() == False:
-            print("Invalid account number\n")
-        else:
-            account_number = int(account_number)
+        account_number = input("\nAccount number: ").strip().replace(" ", "").replace("-", "")
+        for i in range(len(data)):
+            if account_number == data[i][0]:
+                user = i
+                break
+        if user == -1:
+            print("ACCOUNT NOT FOUND")
+        elif account_number.isdigit() == True and len(account_number) == 16: 
+            print("\n-Remember that your PIN is only composed of 4 digits with no special characters")
             while True:
-                for i in range(len(data)):
-                    if account_number == data[i][0]:
-                        user = i
-                        break
-                if user == -1:
-                    print("Account number does not exist in data\n")
-                    break
-                if data[user][3] == True:
-                    print("Account Blocked\n")
-                    break
-                while 1<= attempts <= 3 and data[user][3] == False:
-                    account_pin = input("\nAccount PIN: ")
-                    for j in range(1):
-                        if account_pin.isdigit() and int(account_pin) == data[user][1]:
-                            return user
-                    if pin == -1:
+                while 1 <= attempts <= 3 and data[user][3] == False:
+                    account_pin = input("\nAccount PIN: ").strip().replace(" ", "")
+                    if account_pin == data[user][1] and account_pin.isdigit() == True and len(account_pin) == 4:
+                        return user
+                    elif attempts == 1:
+                        data[user][3] = True
+                        return -1
+                    else:
                         attempts = attempts - 1
-                        if attempts == 0:
-                            data[user][3] = True
-                            return -1
                         print("Incorrect PIN, you have", attempts, "left")
                         break
+                if data[user][3] == True:
+                    return -1 
+
+def is_pin_weak(pin):
+    numbers_ascendent = "0123456789"
+    numbers_descendent = "9876543210"
+    if pin.count(pin[0]) == 4: 
+        return True
+    elif pin in numbers_ascendent:
+        return True
+    elif pin in numbers_descendent:
+        return True
+    elif pin[0:2] == pin[2:4]:
+        return True
+    elif pin[0] == pin[1] and pin[2] == pin[3]:  
+        return True
+    else:
+        return False     
+
+def pin_creation_tips():
+    print("\nTIPS FOR PIN CREATION:")
+    print("-Remember that your PIN needs to have only 4 digits")
+    print("-Try to avoid typing blank spaces")
+    print("-Avoid using the same digit four times, for example: 1111 or 0000")
+    print("-Avoid ascending or descending sequences, for example: 6789 or 4321")
+    print("-Avoid repeating a pair of digits, for example: 1212 or 6969")
+    print("-Avoid using two pairs of repeated digits, for example: 1122 or 7788")
+
+def new_account(data):
+    print("\nHello there!!\nLet's begin with your username\n")
+    while True:
+        new_username = " ".join(input("What is your name?: ").split())
+        if new_username.replace(" ", "").isalpha() == True:
+            break
+        else:
+            print("Invalid Username\n")
+    while True:
+        account_number_exists = False
+        new_account_number = str(random.randint(0000000000000000, 9999999999999999)).zfill(16)
+        for user in range(len(data)):
+            if new_account_number == data[user][0]:
+                account_number_exists = True
+                break
+        if account_number_exists == False:
+            break
+    new_username_show = new_username.title()
+    print("\nHere we GO", new_username_show+"!", "\nLet's create your PIN!")
+    pin_creation_tips()
+    while True:
+        new_pin = input("\nCreate your PIN: ").strip().replace(" ", "")
+        if new_pin.isdigit() == True and len(new_pin) == 4:
+            if is_pin_weak(new_pin) == False:
+                new_pin_confirmation = input("New PIN confirmation: ").strip().replace(" ", "")
+                if new_pin_confirmation == new_pin:
+                    break
+                else:
+                    print("Your PIN is different from the PIN confirmation")
+            else:
+                print("Your PIN is too easy to guess, please check the tips above")
+        else:
+            print("Invalid PIN")
+    new_account_display = "-".join([new_account_number[:4], new_account_number[4:8], new_account_number[8:12], new_account_number[12:]])
+    print("\nYour account number is", new_account_display, "\nYou have registered successfully!!")
+    new_user = [new_account_number, new_pin, 0, False, new_username_show]
+    data.append(new_user)
+
+def keep_going(message):
+    while True:
+        keep_going = input(message+" (Y/N): ").strip().replace(" ", "")
+        if keep_going.upper() == "Y":
+            return True
+        elif keep_going.upper() == "N":
+            return False
+        else:
+            print("Invalid Option, please type Y or N")
 
 def main():
     data = [
         #Account Number, PIN, Balance, Blocked, Name
-        [86547234, 1234, 18337, False, "PEDRO"],
-        [92341234, 4321, 14356, False, "ALBERTO"]
-    ]
-    bills_denominations = [500, 200, 100, 50, 20]
-    bills_quantity = [6, 13, 27, 41, 20]
+        ["8649072490724758", "1234", 18337, False, "Pedro"],  #User 0 data
+        ["6742907529582104", "4321", 14356, False, "Alberto"] #User 1 data
+    ]                                                         #User n data
+    bills_denominations = [500, 200, 100, 50]
+    bills_quantity = [6, 13, 27, 41]
     while True:
-        print("ATM\n\nWELCOME\n")
-        access = authentication(data)
-        if access != -1:
-            print("\nWelcome Back,", data[access][4])
-            menu()
-            while True:
-                option = input("Choose an option: ")
-                if option.isdigit():
-                    option = int(option)
-                match option:
-                    case 1:
-                        print("Your balance is:", consult_balance(data, access), "pesos")
-                    case 2:
-                        print("Withdraw Cash")
-                    case 3:
-                        print("Deposit Cash")
-                    case 4:
-                        print("PIN Change")
-                    case 5:
-                        print("Transaction History")
-                    case 6:
-                        print("The total cash is:", atm_total_cash(bills_denominations, bills_quantity))
-                    case 7:
-                        break
-                    case _:
-                        print("Invalid Option")
-        elif access == -1:
-            print("Account Blocked\n")
-
+        print("\nATM\n\nWELCOME\n")
+        menu1()
+        option1 = input("Choose an option: ").strip().replace(" ", "")
+        match option1:
+            case "1":
+                user = authentication(data)
+                if user != -1:
+                    print("\n\nWelcome Back,", data[user][4])
+                    while True:
+                        menu2()
+                        option2 = input("Choose an option: ").strip().replace(" ", "")
+                        match option2:
+                            case "1":
+                                consult_balance(data, user)
+                            case "2":
+                                withdraw_cash(data, user, bills_denominations, bills_quantity)
+                            case "3":
+                                print("\nYou have deposited", "$"+str(deposit_cash(data, user)), "pesos\nYour new balance is", "$"+str(data[user][2]), "pesos")
+                            case "4":
+                                PIN_change(data, user)
+                            case "5":
+                                print("Transaction History")
+                            case "6":
+                                atm_total_cash_SHOW(bills_denominations, bills_quantity)
+                            case "7":
+                                break
+                            case _:
+                                print("Invalid Option")
+                        message = "Would you like to do another operation?"
+                        if keep_going(message) == False:
+                            break
+                    print("LOGGED OUT")
+                else:
+                    print("ACCOUNT BLOCKED")
+            case "2":
+                new_account(data)
+            case "3":
+                break
+            case _:
+                print("Invalid option")
+                
 main()
