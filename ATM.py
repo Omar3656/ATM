@@ -94,7 +94,6 @@ def deposit_cash(data, user, bills_denominations, bills_quantity):
     for i in range(len(bills_denominations)):
         while True:
             amount_of_bills = input("How many $"+str(bills_denominations[i])+" bills: ").strip().replace(" ", "")
-            if amount_of_bills.isdigit() == True and amount_of_bills >
             if amount_of_bills.isdigit() == True:
                 amount_of_bills = int(amount_of_bills)
                 total_deposited_bills.append(amount_of_bills)
