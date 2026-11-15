@@ -16,11 +16,13 @@ cash, change their PIN, and review their transaction history.
 
 import random
 
-def menu1():
-    print("\n1) Log in\n2) Register\n3) Exit\n")
+def welcome_menu():
+    print("\nATM\n\nWELCOME\n\n1) Log in\n2) Register\n3) Exit\n")
 
-def menu2():
+
+def operations_options_menu():
     print("\n1)Consult Balance\n2)Withdraw Cash\n3)Deposit Cash\n4)PIN Change\n5)Transaction History\n6)Check current cash in the ATM\n7)Exit\n")
+
 
 def consult_balance(data, user): 
     """
@@ -32,6 +34,7 @@ def consult_balance(data, user):
     """
     balance = data[user][2]
     print("\nYour balance is", "$"+str(balance), "pesos\n" )
+
 
 def withdraw_cash(data, user, bills_denominations, bills_quantity):
     balance = data[user][2]
@@ -81,15 +84,46 @@ def withdraw_cash(data, user, bills_denominations, bills_quantity):
     else:
         print("The ATM cannot dispense that exact amount")
         return
-        
-def deposit_cash(data, user):
-    balance = data[user][2]
-    deposit = float(input("Amount of money to be deposited: $"))
-    new_balance = balance + deposit
-    data[user][2] = new_balance
-    return deposit
 
-def PIN_change(data, user):
+
+def deposit_cash(data, user, bills_denominations, bills_quantity):
+    print("\nAccepted bills:\n- $500\n- $200\n- $100\n- $50\nInsert your bills...\n\n")
+    total_deposited_bills = []
+    total_money_deposited = 0
+    balance = data[user][2]
+    for i in range(len(bills_denominations)):
+        while True:
+            amount_of_bills = input("How many $"+str(bills_denominations[i])+" bills: ").strip().replace(" ", "")
+            if amount_of_bills.isdigit() == True and amount_of_bills >
+            if amount_of_bills.isdigit() == True:
+                amount_of_bills = int(amount_of_bills)
+                total_deposited_bills.append(amount_of_bills)
+                total_money_deposited = total_money_deposited + amount_of_bills * bills_denominations[i]
+                break
+            else:
+                print("Only digits are accepted")
+    if total_money_deposited == 0:
+        print("No bills were inserted")
+        return
+    else:
+        message = "You are about to deposit $"+str(total_money_deposited)+" pesos\nDo you want to proceed?"
+        if keep_going(message) == True:
+            for j in range(len(bills_quantity)):
+                new_bills_quantity = bills_quantity[j] + total_deposited_bills[j]
+                bills_quantity[j] = new_bills_quantity
+            new_balance = balance + total_money_deposited
+            data[user][2] = new_balance
+            print("You have deposited:")
+            for k in range(len(total_deposited_bills)):
+                if total_deposited_bills[k] > 0:
+                    print("-", str(total_deposited_bills[k]), "bills of", "$"+str(bills_denominations[k]), "pesos")
+            print("TOTAL DEPOSITED:", "$"+str(total_money_deposited), "pesos")
+        else:
+            print("OPERATION CANCELLED")
+            return
+
+
+def pin_change(data, user):
     pin = input("Current PIN: ").strip().replace(" ", "")
     if pin != data[user][1]:
         print("Incorrect PIN")
@@ -112,6 +146,7 @@ def PIN_change(data, user):
         else:
             print("\nInvalid PIN")
 
+
 def atm_total_cash_SUM(bills_denominations, bills_quantity):
     """
     Inputs: Total bills of 500, 200, 100, 50 and 20
@@ -125,11 +160,13 @@ def atm_total_cash_SUM(bills_denominations, bills_quantity):
         total_cash = total_cash + bills_quantity[i]*bills_denominations[i]
     return total_cash
 
+
 def atm_total_cash_SHOW(bills_denominations, bills_quantity):
     print("The total cash in the ATM is:\n")
     for i in range(len(bills_quantity)):
         print("-", bills_quantity[i], "bills of", "$"+str(bills_denominations[i]), "\n")
     print("TOTAL:", "$"+str(atm_total_cash_SUM(bills_denominations, bills_quantity)), "\n")
+
 
 def authentication(data):
     """
@@ -171,6 +208,7 @@ def authentication(data):
                 if data[user][3] == True:
                     return -1 
 
+
 def is_pin_weak(pin):
     numbers_ascendent = "0123456789"
     numbers_descendent = "9876543210"
@@ -187,6 +225,7 @@ def is_pin_weak(pin):
     else:
         return False     
 
+
 def pin_creation_tips():
     print("\nTIPS FOR PIN CREATION:")
     print("-Remember that your PIN needs to have only 4 digits")
@@ -195,6 +234,7 @@ def pin_creation_tips():
     print("-Avoid ascending or descending sequences, for example: 6789 or 4321")
     print("-Avoid repeating a pair of digits, for example: 1212 or 6969")
     print("-Avoid using two pairs of repeated digits, for example: 1122 or 7788")
+
 
 def new_account(data):
     print("\nHello there!!\nLet's begin with your username\n")
@@ -234,6 +274,7 @@ def new_account(data):
     new_user = [new_account_number, new_pin, 0, False, new_username_show]
     data.append(new_user)
 
+
 def keep_going(message):
     while True:
         keep_going = input(message+" (Y/N): ").strip().replace(" ", "")
@@ -244,17 +285,17 @@ def keep_going(message):
         else:
             print("Invalid Option, please type Y or N")
 
+
 def main():
     data = [
         #Account Number, PIN, Balance, Blocked, Name
         ["8649072490724758", "1234", 18337, False, "Pedro"],  #User 0 data
         ["6742907529582104", "4321", 14356, False, "Alberto"] #User 1 data
-    ]                                                         #User n data
+    ]                                                         
     bills_denominations = [500, 200, 100, 50]
     bills_quantity = [6, 13, 27, 41]
     while True:
-        print("\nATM\n\nWELCOME\n")
-        menu1()
+        welcome_menu()
         option1 = input("Choose an option: ").strip().replace(" ", "")
         match option1:
             case "1":
@@ -262,7 +303,7 @@ def main():
                 if user != -1:
                     print("\n\nWelcome Back,", data[user][4])
                     while True:
-                        menu2()
+                        operations_options_menu()
                         option2 = input("Choose an option: ").strip().replace(" ", "")
                         match option2:
                             case "1":
@@ -270,9 +311,9 @@ def main():
                             case "2":
                                 withdraw_cash(data, user, bills_denominations, bills_quantity)
                             case "3":
-                                print("\nYou have deposited", "$"+str(deposit_cash(data, user)), "pesos\nYour new balance is", "$"+str(data[user][2]), "pesos")
+                                deposit_cash(data, user, bills_denominations, bills_quantity)
                             case "4":
-                                PIN_change(data, user)
+                                pin_change(data, user)
                             case "5":
                                 print("Transaction History")
                             case "6":
