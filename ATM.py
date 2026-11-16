@@ -54,7 +54,7 @@ def withdraw_cash(data, user, bills_denominations, bills_quantity):
                 print("Amount to be withdrawn exceeds your balance")
             elif withdraw % 50 != 0:
                 print("Amount needs to be multiple of 50")
-            elif withdraw > atm_total_cash_SUM(bills_denominations, bills_quantity):
+            elif withdraw > atm_total_cash_sum(bills_denominations, bills_quantity):
                 print("Amount exceeds the total cash available in the ATM")
             else:
                 break
@@ -146,7 +146,7 @@ def pin_change(data, user):
             print("\nInvalid PIN")
 
 
-def atm_total_cash_SUM(bills_denominations, bills_quantity):
+def atm_total_cash_sum(bills_denominations, bills_quantity):
     """
     Inputs: Total bills of 500, 200, 100, 50 and 20
     Outputs: ATM current cash
@@ -160,11 +160,11 @@ def atm_total_cash_SUM(bills_denominations, bills_quantity):
     return total_cash
 
 
-def atm_total_cash_SHOW(bills_denominations, bills_quantity):
+def atm_total_cash_show(bills_denominations, bills_quantity):
     print("The total cash in the ATM is:\n")
     for i in range(len(bills_quantity)):
         print("-", bills_quantity[i], "bills of", "$"+str(bills_denominations[i]), "\n")
-    print("TOTAL:", "$"+str(atm_total_cash_SUM(bills_denominations, bills_quantity)), "\n")
+    print("TOTAL:", "$"+str(atm_total_cash_sum(bills_denominations, bills_quantity)), "\n")
 
 
 def authentication(data):
@@ -190,22 +190,20 @@ def authentication(data):
                 break
         if user == -1:
             print("ACCOUNT NOT FOUND")
-        elif account_number.isdigit() == True and len(account_number) == 16: 
+        elif data[user][3]:
+            return -1
+        else: 
             print("\n-Remember that your PIN is only composed of 4 digits with no special characters")
-            while True:
-                while 1 <= attempts <= 3 and data[user][3] == False:
-                    account_pin = input("\nAccount PIN: ").strip().replace(" ", "")
-                    if account_pin == data[user][1] and account_pin.isdigit() == True and len(account_pin) == 4:
-                        return user
-                    elif attempts == 1:
-                        data[user][3] = True
-                        return -1
-                    else:
-                        attempts = attempts - 1
-                        print("Incorrect PIN, you have", attempts, "left")
-                        break
-                if data[user][3] == True:
-                    return -1 
+            while 1 <= attempts <= 3:
+                account_pin = input("\nAccount PIN: ").strip().replace(" ", "")
+                if account_pin == data[user][1]:
+                    return user
+                elif attempts == 1:
+                    data[user][3] = True
+                    return -1
+                else:
+                    attempts = attempts - 1
+                    print("Incorrect PIN, you have", attempts, "left")
 
 
 def is_pin_weak(pin):
@@ -270,27 +268,52 @@ def new_account(data):
             print("Invalid PIN")
     new_account_display = "-".join([new_account_number[:4], new_account_number[4:8], new_account_number[8:12], new_account_number[12:]])
     print("\nYour account number is", new_account_display, "\nYou have registered successfully!!")
-    new_user = [new_account_number, new_pin, 0, False, new_username_show]
+    new_user = [new_account_number, new_pin, 0, False, new_username_show, float(0)]
     data.append(new_user)
 
 
 def keep_going(message):
     while True:
-        keep_going = input(message+" (Y/N): ").strip().replace(" ", "")
-        if keep_going.upper() == "Y":
+        answer = input(message+" (Y/N): ").strip().replace(" ", "")
+        if answer.upper() == "Y":
             return True
-        elif keep_going.upper() == "N":
+        elif answer.upper() == "N":
             return False
         else:
             print("Invalid Option, please type Y or N")
 
 
+def save_accounts(data):
+    file = open("accounts.txt", "w")
+    for row in data:
+        line = []
+        for value in row:
+            line.append(str(value))
+        line_string = ",".join(line)
+        file.write(line_string+"\n")
+    file.close()
+
+
+def load_accounts():
+    data = []
+    file = open("accounts.txt", "r")
+    for line_in_file in file:
+        line_in_matriz = line_in_file.strip().split(",")
+        for value in range(len(line_in_matriz)):
+            if value == 2:
+                line_in_matriz[value] = int(line_in_matriz[value])
+            elif value == 5:
+                line_in_matriz[value] = float(line_in_matriz[value])
+            elif value == 3:
+                boolean = line_in_matriz[value] == "True"
+                line_in_matriz[value] = boolean
+        data.append(line_in_matriz)
+    file.close()
+    return data
+
+
 def main():
-    data = [
-        #Account Number, PIN, Balance, Blocked, Name
-        ["8649072490724758", "1234", 18337, False, "Pedro"],  #User 0 data
-        ["6742907529582104", "4321", 14356, False, "Alberto"] #User 1 data
-    ]                                                         
+    data = load_accounts()                                                  
     bills_denominations = [500, 200, 100, 50]
     bills_quantity = [6, 13, 27, 41]
     while True:
@@ -316,22 +339,26 @@ def main():
                             case "5":
                                 print("Transaction History")
                             case "6":
-                                atm_total_cash_SHOW(bills_denominations, bills_quantity)
+                                atm_total_cash_show(bills_denominations, bills_quantity)
                             case "7":
                                 break
                             case _:
                                 print("Invalid Option")
+                        save_accounts(data)
                         message = "Would you like to do another operation?"
                         if keep_going(message) == False:
                             break
                     print("LOGGED OUT")
                 else:
                     print("ACCOUNT BLOCKED")
+                save_accounts(data)
             case "2":
                 new_account(data)
+                save_accounts(data)
             case "3":
                 break
             case _:
                 print("Invalid option")
+
                 
 main()
