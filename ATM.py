@@ -15,6 +15,7 @@ cash, change their PIN, and review their transaction history.
 """
 
 import random
+import time
 
 def welcome_menu():
     print("\nATM\n\nWELCOME\n\n1) Log in\n2) Register\n3) Exit\n")
@@ -78,6 +79,7 @@ def withdraw_cash(data, user, bills_denominations, bills_quantity):
                 if total_withdrawn_bills[k] > 0:
                     print("-", total_withdrawn_bills[k], "bills of", "$"+str(bills_denominations[k]))
             print("TOTAL:", "$"+str(withdraw), "pesos")
+            save_operation(data[user][0], "WITHDRAWAL",  withdraw, new_balance)
         else:
             print("OPERATION CANCELLED")
             return
@@ -117,9 +119,37 @@ def deposit_cash(data, user, bills_denominations, bills_quantity):
                 if total_deposited_bills[k] > 0:
                     print("-", str(total_deposited_bills[k]), "bills of", "$"+str(bills_denominations[k]), "pesos")
             print("TOTAL DEPOSITED:", "$"+str(total_money_deposited), "pesos")
+            save_operation(data[user][0], "DEPOSIT", total_money_deposited, new_balance)
         else:
             print("OPERATION CANCELLED")
             return
+
+
+def save_operation(account_number, operation_type, amount, balance_after_operation):
+    operation_date = time.strftime("%Y/%m/%d")
+    operation_time = time.strftime("%H:%M")
+    operation_line = [account_number, operation_type, amount, balance_after_operation, operation_date, operation_time]
+    line = []
+    for value in operation_line:
+        line.append(str(value))
+    file = open("history.txt", "a")
+    file.write(",".join(line)+"\n")
+    file.close()
+
+
+def show_history(data, user):
+    account_number = data[user][0]
+    print("Transaction history for account", account_number_format(account_number)+":\n")
+    file = open("history.txt", "r")
+    found = False
+    for line in file:
+        line = line.strip().split(",")
+        if account_number in line:
+            found = True
+            print(line[4], line[5]+" | "+line[1]+" | $"+line[2]+" pesos | Balance after operation: $"+line[3]+" pesos")
+    file.close()
+    if found == False:
+        print("No operations yet")
 
 
 def pin_change(data, user):
@@ -266,10 +296,14 @@ def new_account(data):
                 print("Your PIN is too easy to guess, please check the tips above")
         else:
             print("Invalid PIN")
-    new_account_display = "-".join([new_account_number[:4], new_account_number[4:8], new_account_number[8:12], new_account_number[12:]])
-    print("\nYour account number is", new_account_display, "\nYou have registered successfully!!")
+    print("\nYour account number is", account_number_format(new_account_number), "\nYou have registered successfully!!")
     new_user = [new_account_number, new_pin, 0, False, new_username_show, float(0)]
     data.append(new_user)
+
+
+def account_number_format(account_number):
+    account_number_display = "-".join([account_number[:4], account_number[4:8], account_number[8:12], account_number[12:]])
+    return account_number_display
 
 
 def keep_going(message):
@@ -337,7 +371,7 @@ def main():
                             case "4":
                                 pin_change(data, user)
                             case "5":
-                                print("Transaction History")
+                                show_history(data, user)
                             case "6":
                                 atm_total_cash_show(bills_denominations, bills_quantity)
                             case "7":
