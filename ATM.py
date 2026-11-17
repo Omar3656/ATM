@@ -16,6 +16,7 @@ cash, change their PIN, and review their transaction history.
 
 import random
 import time
+import pwinput
 
 def welcome_menu():
     print("\nATM\n\nWELCOME\n\n1) Log in\n2) Register\n3) Exit\n")
@@ -28,10 +29,10 @@ def operations_options_menu():
 def consult_balance(data, user): 
     """
     Inputs: The user
-    Outputs: The user´s balance
+    Outputs: The user's balance
     Process:
-    -If the user is Pedro, it will return Pedro´s balance
-    -If the user is Alberto, it will return Alberto´s balance
+    -If the user is Pedro, it will return Pedro's balance
+    -If the user is Alberto, it will return Alberto's balance
     """
     balance = data[user][2]
     print("\nYour balance is", "$"+str(balance), "pesos\n" )
@@ -153,17 +154,17 @@ def show_history(data, user):
 
 
 def pin_change(data, user):
-    pin = input("Current PIN: ").strip().replace(" ", "")
+    pin = pwinput.pwinput(prompt="Current PIN: ", mask="*").strip().replace(" ", "")
     if pin != data[user][1]:
         print("Incorrect PIN")
         return
     pin_creation_tips()
     print("-Avoid using your current PIN")
     while True:
-        new_pin = input("New PIN: ").strip().replace(" ", "")
+        new_pin = pwinput.pwinput(prompt="New PIN: ", mask="*").strip().replace(" ", "")
         if new_pin.isdigit() == True and new_pin != pin and len(new_pin) == 4:
             if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = input("New PIN confirmation: ").strip().replace(" ", "")
+                new_pin_confirmation = pwinput.pwinput(prompt="New PIN confirmation: ", mask="*").strip().replace(" ", "")
                 if new_pin != new_pin_confirmation:
                     print("New PIN needs to be the same that the new PIN confirmation")
                 else:
@@ -215,7 +216,7 @@ def authentication(data):
         attempts = 3
         account_number = input("\nAccount number: ").strip().replace(" ", "").replace("-", "")
         for i in range(len(data)):
-            if account_number == data[i][0]:
+            if account_number  == data[i][0]:
                 user = i
                 break
         if user == -1:
@@ -225,7 +226,7 @@ def authentication(data):
         else: 
             print("\n-Remember that your PIN is only composed of 4 digits with no special characters")
             while 1 <= attempts <= 3:
-                account_pin = input("\nAccount PIN: ").strip().replace(" ", "")
+                account_pin = pwinput.pwinput(prompt="\nAccount PIN: ", mask="*").strip().replace(" ", "")
                 if account_pin == data[user][1]:
                     return user
                 elif attempts == 1:
@@ -284,10 +285,10 @@ def new_account(data):
     print("\nHere we GO", new_username_show+"!", "\nLet's create your PIN!")
     pin_creation_tips()
     while True:
-        new_pin = input("\nCreate your PIN: ").strip().replace(" ", "")
+        new_pin = pwinput.pwinput(prompt="\nCreate your PIN: ", mask="*").strip().replace(" ", "")
         if new_pin.isdigit() == True and len(new_pin) == 4:
             if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = input("New PIN confirmation: ").strip().replace(" ", "")
+                new_pin_confirmation = pwinput.pwinput(prompt="New PIN confirmation: ", mask="*").strip().replace(" ", "")
                 if new_pin_confirmation == new_pin:
                     break
                 else:
