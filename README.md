@@ -6,6 +6,34 @@ Automatic Teller Machines (ATMs) are essential components of modern financial in
 
 The objective of this project is to develop a functional ATM UI simulation that models both user-facing operations and its internal operation logic. Some of the features I want to include are: user authentication, transaction logging (history), real-time cash inventory, optimal bank-note dispensation algorithm (handling $50, $100, $200, and $500 denominations based on available physical stock), and an operation to change your current PIN to a new one.
 
+## Requirements
+
+- Python 3.10 or newer because my program uses match and case
+- The external library **pwinput**, used to hide the PIN with asterisks while it is typed. Install it with:
+
+  ```
+  pip install pwinput
+  ```
+
+  Documentation: https://pypi.org/project/pwinput/
+
+## How to run
+
+1. Download or clone this repository.
+2. Keep the files: "ATM.py", "accounts.txt" and "history.txt" in the same folder.
+3. Open a terminal **in that same folder** and run:
+
+   ```
+   python ATM.py
+   ```
+
+### Test accounts
+
+| Name | Account number | PIN |
+|---|---|---|
+| Pedro | 8649-0724-9072-4758 | 3784 |
+| Alberto | 6742-9075-2958-2104 | 4873 |
+
 ## Algorithm:
 
 The internal ATM digital system will already include the correct information such as the determined account number, the correct NIP for each account number, the available cash that the user has and the current storage of cash that the ATM has. Also, it´ll include a security system of PIN attempts and a timer will start at the beggining of a new account session, if the user does not interact with the UI the session will end
