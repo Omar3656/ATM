@@ -5,13 +5,26 @@ ATM.py
 
 Author: Omar Rolon
 
-A Python program that simulates the operation of an automatic teller machine (ATM), modeling
-both the user-facing interface and the internal logic behind it.
+A Python program that simulates the operation of an automatic teller
+machine (ATM), modeling both the user-facing interface and the internal
+logic behind it.
 
-The system stores account numbers, PINs, balances, and the machine’s physical cash inventory.
-Users authenticate with an account number and PIN, protected by a three-attempt limit that blocks
-the account on failure. Once inside, a menu lets them check their balance, deposit cash, withdraw
-cash, change their PIN, and review their transaction history.
+The system stores account numbers, PINs, balances, and the machine's
+physical cash inventory. New users can register an account: the program
+creates a unique 16-digit account number for them and asks them to
+choose a PIN, rejecting PINs that are too easy to guess.
+
+Users log in with their account number and PIN, which is hidden with
+asterisks while it is typed. They have three attempts, and the account
+is blocked if all of them fail. Once inside, a menu lets them check
+their balance, withdraw cash, deposit cash, change their PIN, review
+their transaction history, and see the cash available in the ATM.
+
+Withdrawals are given with the available bills, from the highest to the
+lowest, and deposits are made bill by bill, so the ATM's cash inventory
+changes with every operation. All accounts are saved in a file, and
+every withdrawal and deposit is recorded with its date and time in a
+history file, so the information is kept even after the program closes.
 """
 
 import random
@@ -19,26 +32,56 @@ import time
 import pwinput
 
 def welcome_menu():
+    """
+    Inputs: No inputs
+    Outputs: The welcome menu on screen
+    Process:
+    -Prints the welcome message and the options: log in, register
+    and exit
+    """
     print("\nATM\n\nWELCOME\n\n1) Log in\n2) Register\n3) Exit\n")
 
 
 def operations_options_menu():
+    """
+    Inputs: No inputs
+    Outputs: The operations menu on screen
+    Process:
+    -Prints the options: consult balance, withdraw cash, deposit cash,
+    PIN change, transaction history, ATM cash and exit
+    """
     print("\n1)Consult Balance\n2)Withdraw Cash\n3)Deposit Cash\n4)PIN Change\n5)Transaction History\n6)Check current cash in the ATM\n7)Exit\n")
 
 
 def consult_balance(data, user): 
     """
-    Inputs: The user
-    Outputs: The user's balance
+    Inputs: The account's data and the user
+    Outputs: The user's balance on screen
     Process:
-    -If the user is Pedro, it will return Pedro's balance
-    -If the user is Alberto, it will return Alberto's balance
+    -It will take the user's balance from the accounts data
+    -It will print the balance
     """
     balance = data[user][2]
     print("\nYour balance is", "$"+str(balance), "pesos\n" )
 
 
 def withdraw_cash(data, user, bills_denominations, bills_quantity):
+    """
+    Inputs: The accounts data, the user, the bills denominations, the
+    bills quantity and the amount of money to be withdrawn
+    Outputs: The withdrawn bills and the total on screen
+    Process:
+    -If the balance is less than 50, it will end the operation
+    -Asks for the amount and validates that it only has digits
+    -Validates that the amount is greater than 0, does not exceed the
+    balance, is multiple of 50 and does not exceed the ATM cash
+    -From the highest to the lowest bill, it calculates how many bills
+    are needed, without using more bills than the ATM has
+    -If the exact amount can't be given, it will end the operation
+    -Asks for confirmation
+    -Updates the bills quantity and the user's balance
+    -Shows the withdrawn bills and saves the operation in the history
+    """
     balance = data[user][2]
     if balance < 50:
         print("Your balance is not enough to make a withdrawal")
@@ -90,6 +133,19 @@ def withdraw_cash(data, user, bills_denominations, bills_quantity):
 
 
 def deposit_cash(data, user, bills_denominations, bills_quantity):
+    """
+    Inputs: The accounts data, the user, the bills denominations, the
+    bills quantity and the number of bills of each type
+    Outputs: The deposited bills and the total on screen
+    Process:
+    -Asks how many bills of each type the user is inserting and
+    validates that it only has digits
+    -Calculates the total money deposited
+    -If no bills were inserted, it will end the operation
+    -Asks for confirmation
+    -Adds the bills to the bills quantity and the total to the balance
+    -Shows the deposited bills and saves the operation in the history
+    """
     print("\nAccepted bills:\n- $500\n- $200\n- $100\n- $50\nInsert your bills...\n\n")
     total_deposited_bills = []
     total_money_deposited = 0
@@ -127,6 +183,16 @@ def deposit_cash(data, user, bills_denominations, bills_quantity):
 
 
 def save_operation(account_number, operation_type, amount, balance_after_operation):
+    """
+    Inputs: The account number, the operation type, the amount and the
+    balance after the operation
+    Outputs: A new line in the history file
+    Process:
+    -Gets the current date and time of the operation
+    -Converts all the data into text
+    -Joins the data with commas
+    -Adds the line at the end of the history file
+    """
     operation_date = time.strftime("%Y/%m/%d")
     operation_time = time.strftime("%H:%M")
     operation_line = [account_number, operation_type, amount, balance_after_operation, operation_date, operation_time]
@@ -139,6 +205,16 @@ def save_operation(account_number, operation_type, amount, balance_after_operati
 
 
 def show_history(data, user):
+    """
+    Inputs: The accounts data and the user
+    Outputs: The user's operations on screen
+    Process:
+    -Shows the user's account number with dashes
+    -Reads the history file line by line
+    -If the line belongs to the user, it will print the date, time,
+    type, amount and balance after the operation
+    -If the user has no operations, it will print a message
+    """
     account_number = data[user][0]
     print("Transaction history for account", account_number_format(account_number)+":\n")
     file = open("history.txt", "r")
@@ -154,6 +230,19 @@ def show_history(data, user):
 
 
 def pin_change(data, user):
+    """
+    Inputs: The accounts data, the user, the current PIN, the new PIN
+    and the new PIN confirmation
+    Outputs: The user's PIN updated
+    Process:
+    -Asks for the current PIN, if it is incorrect it will end the
+    operation
+    -Shows the tips for PIN creation
+    -Asks for the new PIN and validates that it has 4 digits, is
+    different from the current PIN and is not weak
+    -Asks for the confirmation, if it is the same, it will update the
+    PIN
+    """
     pin = pwinput.pwinput(prompt="Current PIN: ", mask="*").strip().replace(" ", "")
     if pin != data[user][1]:
         print("Incorrect PIN")
@@ -179,11 +268,12 @@ def pin_change(data, user):
 
 def atm_total_cash_sum(bills_denominations, bills_quantity):
     """
-    Inputs: Total bills of 500, 200, 100, 50 and 20
+    Inputs: The bills denominations and the bills quantity
     Outputs: ATM current cash
     Process:
-    -The current cash = bills of 500 * 500 + bills of 200 * 200 + bills of 100 * 100 + bills of 50 * 50 + bills of 20 * 20
-    -It will return the current Cash
+    -For each type of bill, it multiplies the denomination by the
+    quantity and adds it to the total
+    -It will return the total cash
     """
     total_cash = 0
     for i in range(len(bills_quantity)):
@@ -192,6 +282,13 @@ def atm_total_cash_sum(bills_denominations, bills_quantity):
 
 
 def atm_total_cash_show(bills_denominations, bills_quantity):
+    """
+    Inputs: The bills denominations and the bills quantity
+    Outputs: The ATM cash on screen
+    Process:
+    -Prints how many bills of each type the ATM has
+    -Prints the total cash in the ATM
+    """
     print("The total cash in the ATM is:\n")
     for i in range(len(bills_quantity)):
         print("-", bills_quantity[i], "bills of", "$"+str(bills_denominations[i]), "\n")
@@ -200,14 +297,16 @@ def atm_total_cash_show(bills_denominations, bills_quantity):
 
 def authentication(data):
     """
-    Inputs: account_pin_1, account_pin_2, account number, account PIN, blocked_1, blocked_2
-    Outputs: user_1, user_2, "Account 1 blocked", "Account 2 blocked"
+    Inputs: The accounts data, the account number and the account PIN
+    Outputs: The user (row of the account in the data) or -1
     Process:
-    -Asks the user for an account number
-    -Validates if the account exists and if it is not blocked
-    -Asks for the account PIN and gives up to 3 attempts
-    -Returns the corresponding user if the PIN is correct
-    -Returns the text of "Account 1 Blocked or "Account 2 Blocked" if the attempts are 0
+    -Asks for the account number and removes spaces and dashes
+    -Looks for the account number in the accounts data
+    -If the account does not exist, it will ask again
+    -If the account is blocked, it will return -1
+    -Asks for the PIN and gives up to 3 attempts
+    -Returns the user if the PIN is correct
+    -Blocks the account and returns -1 if the attempts are over
     """
     print("\nHello there!!")
     print("-Remember that your account number has 16 digits\n-Do NOT use special characters other than '-' or blank spaces")
@@ -238,6 +337,16 @@ def authentication(data):
 
 
 def is_pin_weak(pin):
+    """
+    Inputs: The PIN
+    Outputs: True if the PIN is weak, False if it is not
+    Process:
+    -Checks if the PIN has the same digit four times
+    -Checks if the PIN is an ascending or descending sequence
+    -Checks if the PIN repeats a pair of digits
+    -Checks if the PIN has two pairs of repeated digits
+    -If any of them is true, it will return True
+    """
     numbers_ascendent = "0123456789"
     numbers_descendent = "9876543210"
     if pin.count(pin[0]) == 4: 
@@ -255,6 +364,13 @@ def is_pin_weak(pin):
 
 
 def pin_creation_tips():
+    """
+    Inputs: No inputs
+    Outputs: The tips for PIN creation on screen
+    Process:
+    -Prints the rules for a valid PIN
+    -Prints examples of weak PINs that are not accepted
+    """
     print("\nTIPS FOR PIN CREATION:")
     print("-Remember that your PIN needs to have only 4 digits")
     print("-Try to avoid typing blank spaces")
@@ -265,6 +381,20 @@ def pin_creation_tips():
 
 
 def new_account(data):
+    """
+    Inputs: The accounts data, the user's name, the PIN and the PIN
+    confirmation
+    Outputs: A new account added to the accounts data
+    Process:
+    -Asks for the name and validates that it only has letters
+    -Creates a random 16 digit account number that does not exist yet
+    -Shows the tips for PIN creation
+    -Asks for the PIN and validates that it has 4 digits and is not
+    weak
+    -Asks for the confirmation until it is the same
+    -Shows the new account number
+    -Adds the new account to the accounts data
+    """
     print("\nHello there!!\nLet's begin with your username\n")
     while True:
         new_username = " ".join(input("What is your name?: ").split())
@@ -303,11 +433,26 @@ def new_account(data):
 
 
 def account_number_format(account_number):
+    """
+    Inputs: The account number
+    Outputs: The account number with dashes
+    Process:
+    -Splits the account number into 4 groups of 4 digits
+    -Joins the groups with dashes
+    -It will return the account number with dashes
+    """
     account_number_display = "-".join([account_number[:4], account_number[4:8], account_number[8:12], account_number[12:]])
     return account_number_display
 
 
 def keep_going(message):
+    """
+    Inputs: The message of the question and the user's answer
+    Outputs: True if the answer is Y, False if the answer is N
+    Process:
+    -Shows the message and asks for Y or N
+    -If the answer is not Y or N, it will ask again
+    """
     while True:
         answer = input(message+" (Y/N): ").strip().replace(" ", "")
         if answer.upper() == "Y":
@@ -319,6 +464,14 @@ def keep_going(message):
 
 
 def save_accounts(data):
+    """
+    Inputs: The accounts data
+    Outputs: The accounts file updated
+    Process:
+    -Opens the accounts file and rewrites it
+    -For each account, converts all the data into text
+    -Joins the data with commas and writes it as a line
+    """
     file = open("accounts.txt", "w")
     for row in data:
         line = []
@@ -330,6 +483,17 @@ def save_accounts(data):
 
 
 def load_accounts():
+    """
+    Inputs: No inputs
+    Outputs: The accounts data
+    Process:
+    -Opens the accounts file and reads it line by line
+    -Splits each line by commas into a list
+    -Converts the balance into int, the blocked state into True or
+    False and the block time into float
+    -Adds each account to the accounts data
+    -It will return the accounts data
+    """
     data = []
     file = open("accounts.txt", "r")
     for line_in_file in file:
@@ -348,6 +512,18 @@ def load_accounts():
 
 
 def main():
+    """
+    Inputs: The options selected by the user
+    Outputs: The ATM program running
+    Process:
+    -Loads the accounts data from the file
+    -Shows the welcome menu until the user exits
+    -Option 1: logs in the user and shows the operations menu until
+    the user logs out
+    -Option 2: registers a new account
+    -Option 3: ends the program
+    -Saves the accounts data every time something changes
+    """
     data = load_accounts()                                                  
     bills_denominations = [500, 200, 100, 50]
     bills_quantity = [6, 13, 27, 41]
