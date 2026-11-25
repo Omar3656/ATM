@@ -217,16 +217,19 @@ def show_history(data, user):
     """
     account_number = data[user][0]
     print("Transaction history for account", account_number_format(account_number)+":\n")
-    file = open("history.txt", "r")
-    found = False
-    for line in file:
-        line = line.strip().split(",")
-        if account_number in line:
-            found = True
-            print(line[4], line[5]+" | "+line[1]+" | $"+line[2]+" pesos | Balance after operation: $"+line[3]+" pesos")
-    file.close()
-    if found == False:
-        print("No operations yet")
+    try:
+        file = open("history.txt", "r")
+        found = False
+        for line in file:
+            line = line.strip().split(",")
+            if account_number in line:
+                found = True
+                print(line[4], line[5]+" | "+line[1]+" | $"+line[2]+" pesos | Balance after operation: $"+line[3]+" pesos")
+        file.close()
+        if found == False:
+            print("No operations yet")
+    except FileNotFoundError:
+        print("The history data does not exist")
 
 
 def pin_change(data, user):
@@ -495,19 +498,22 @@ def load_accounts():
     -It will return the accounts data
     """
     data = []
-    file = open("accounts.txt", "r")
-    for line_in_file in file:
-        line_in_matriz = line_in_file.strip().split(",")
-        for value in range(len(line_in_matriz)):
-            if value == 2:
-                line_in_matriz[value] = int(line_in_matriz[value])
-            elif value == 5:
-                line_in_matriz[value] = float(line_in_matriz[value])
-            elif value == 3:
-                boolean = line_in_matriz[value] == "True"
-                line_in_matriz[value] = boolean
-        data.append(line_in_matriz)
-    file.close()
+    try:
+        file = open("accounts.txt", "r")
+        for line_in_file in file:
+            line_in_matriz = line_in_file.strip().split(",")
+            for value in range(len(line_in_matriz)):
+                if value == 2:
+                    line_in_matriz[value] = int(line_in_matriz[value])
+                elif value == 5:
+                    line_in_matriz[value] = float(line_in_matriz[value])
+                elif value == 3:
+                    boolean = line_in_matriz[value] == "True"
+                    line_in_matriz[value] = boolean
+            data.append(line_in_matriz)
+        file.close()
+    except FileNotFoundError:
+        print("There are no accounts yet")
     return data
 
 
