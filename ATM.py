@@ -214,6 +214,9 @@ def show_history(data, user):
     -If the line belongs to the user, it will print the date, time,
     type, amount and balance after the operation
     -If the user has no operations, it will print a message
+    -If the history file does not exist (FileNotFoundError), it means
+    that no operations have been made yet, so it will print the same
+    message
     """
     account_number = data[user][0]
     print("Transaction history for account", account_number_format(account_number)+":\n")
@@ -229,7 +232,7 @@ def show_history(data, user):
         if found == False:
             print("No operations yet")
     except FileNotFoundError:
-        print("The history data does not exist")
+        print("No operations yet")
 
 
 def pin_change(data, user):
@@ -246,17 +249,17 @@ def pin_change(data, user):
     -Asks for the confirmation, if it is the same, it will update the
     PIN
     """
-    pin = pwinput.pwinput(prompt="Current PIN: ", mask="*").strip().replace(" ", "")
+    pin = read_pin("Current PIN: ")
     if pin != data[user][1]:
         print("Incorrect PIN")
         return
     pin_creation_tips()
     print("-Avoid using your current PIN")
     while True:
-        new_pin = pwinput.pwinput(prompt="New PIN: ", mask="*").strip().replace(" ", "")
+        new_pin = read_pin("New PIN: ")
         if new_pin.isdigit() == True and new_pin != pin and len(new_pin) == 4:
             if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = pwinput.pwinput(prompt="New PIN confirmation: ", mask="*").strip().replace(" ", "")
+                new_pin_confirmation = read_pin("New PIN confirmation: ")
                 if new_pin != new_pin_confirmation:
                     print("New PIN needs to be the same that the new PIN confirmation")
                 else:
@@ -301,9 +304,12 @@ def atm_total_cash_show(bills_denominations, bills_quantity):
 def authentication(data):
     """
     Inputs: The accounts data, the account number and the account PIN
-    Outputs: The user (row of the account in the data) or -1
+    Outputs: The user (row of the account in the data), -1 if the
+    account is blocked or -2 if the user wants to go back
     Process:
     -Asks for the account number and removes spaces and dashes
+    -If the user types E or e, it will return -2 to go back to the
+    welcome menu
     -Looks for the account number in the accounts data
     -If the account does not exist, it will ask again
     -If the account is blocked, it will return -1
@@ -313,10 +319,13 @@ def authentication(data):
     """
     print("\nHello there!!")
     print("-Remember that your account number has 16 digits\n-Do NOT use special characters other than '-' or blank spaces")
+    print("You can write 'E' to go back")
     while True:
         user = -1
         attempts = 3
         account_number = input("\nAccount number: ").strip().replace(" ", "").replace("-", "")
+        if account_number.upper() == "E":
+            return -2
         for i in range(len(data)):
             if account_number  == data[i][0]:
                 user = i
@@ -325,10 +334,10 @@ def authentication(data):
             print("ACCOUNT NOT FOUND")
         elif data[user][3]:
             return -1
-        else: 
+        else:   
             print("\n-Remember that your PIN is only composed of 4 digits with no special characters")
             while 1 <= attempts <= 3:
-                account_pin = pwinput.pwinput(prompt="\nAccount PIN: ", mask="*").strip().replace(" ", "")
+                account_pin = read_pin("\nAccount PIN: ")
                 if account_pin == data[user][1]:
                     return user
                 elif attempts == 1:
@@ -337,6 +346,19 @@ def authentication(data):
                 else:
                     attempts = attempts - 1
                     print("Incorrect PIN, you have", attempts, "left")
+
+
+def read_pin(message):
+    """
+    Inputs: The message to show and the PIN typed by the user
+    Outputs: The PIN without blank spaces
+    Process:
+    -Shows the message and asks for the PIN, hiding it with asterisks
+    -Removes the blank spaces from the PIN
+    -It will return the PIN
+    """
+    pin = pwinput.pwinput(message, mask="*").strip().replace(" ", "")
+    return pin
 
 
 def is_pin_weak(pin):
@@ -418,10 +440,10 @@ def new_account(data):
     print("\nHere we GO", new_username_show+"!", "\nLet's create your PIN!")
     pin_creation_tips()
     while True:
-        new_pin = pwinput.pwinput(prompt="\nCreate your PIN: ", mask="*").strip().replace(" ", "")
+        new_pin = read_pin("\nCreate your PIN: ")
         if new_pin.isdigit() == True and len(new_pin) == 4:
             if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = pwinput.pwinput(prompt="New PIN confirmation: ", mask="*").strip().replace(" ", "")
+                new_pin_confirmation = read_pin("New PIN confirmation: ")
                 if new_pin_confirmation == new_pin:
                     break
                 else:
@@ -488,13 +510,16 @@ def save_accounts(data):
 def load_accounts():
     """
     Inputs: No inputs
-    Outputs: The accounts data
+    Outputs: The accounts data (empty if the accounts file does not
+    exist)
     Process:
     -Opens the accounts file and reads it line by line
     -Splits each line by commas into a list
     -Converts the balance into int, the blocked state into True or
     False and the block time into float
     -Adds each account to the accounts data
+    -If the accounts file does not exist (FileNotFoundError), it will
+    print a message and the accounts data will stay empty
     -It will return the accounts data
     """
     data = []
@@ -513,7 +538,7 @@ def load_accounts():
             data.append(line_in_matriz)
         file.close()
     except FileNotFoundError:
-        print("There are no accounts yet")
+        print("There are no accounts yet, please register first")
     return data
 
 
@@ -523,9 +548,12 @@ def main():
     Outputs: The ATM program running
     Process:
     -Loads the accounts data from the file
+    -Sets the bills denominations and the bills quantity of the ATM
     -Shows the welcome menu until the user exits
-    -Option 1: logs in the user and shows the operations menu until
-    the user logs out
+    -Option 1: logs in the user. If the login is correct, it shows the
+    operations menu until the user logs out. If the account is
+    blocked, it prints a message, and if the user typed E, it goes
+    back to the welcome menu
     -Option 2: registers a new account
     -Option 3: ends the program
     -Saves the accounts data every time something changes
@@ -539,7 +567,7 @@ def main():
         match option1:
             case "1":
                 user = authentication(data)
-                if user != -1:
+                if user >= 0:
                     print("\n\nWelcome Back,", data[user][4])
                     while True:
                         operations_options_menu()
@@ -566,8 +594,10 @@ def main():
                         if keep_going(message) == False:
                             break
                     print("LOGGED OUT")
-                else:
+                elif user == -1:
                     print("ACCOUNT BLOCKED")
+                else:
+                    print("Returning to main menu...")
                 save_accounts(data)
             case "2":
                 new_account(data)
