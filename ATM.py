@@ -30,50 +30,76 @@ If one of these files does not exist, the program keeps working: it
 starts with no accounts or with an empty history.
 """
 
+# Libraries
 import random
 import time
 
 import pwinput
 
+# Constants
+ASCENDING_DIGITS = "0123456789"
+DESCENDING_DIGITS = "9876543210"
+BILLS_DENOMINATIONS = [500, 200, 100, 50]
+
+
+# ========================== Menu functions ==========================
+
 
 def welcome_menu():
     """
+    Topics: functions, strings
     Inputs: No inputs
     Outputs: The welcome menu on screen
     Process:
     -Prints the welcome message and the options: log in, register
     and exit
+    Test case:
+    -welcome_menu() prints WELCOME and the options 1) Log in,
+    2) Register and 3) Exit
     """
     print("\nATM\n\nWELCOME\n\n1) Log in\n2) Register\n3) Exit\n")
 
 
 def operations_options_menu():
     """
+    Topics: functions, strings
     Inputs: No inputs
     Outputs: The operations menu on screen
     Process:
     -Prints the options: consult balance, withdraw cash, deposit cash,
     PIN change, transaction history, ATM cash and exit
+    Test case:
+    -operations_options_menu() prints the 7 options, from
+    1)Consult Balance to 7)Exit
     """
     print("\n1)Consult Balance\n2)Withdraw Cash\n3)Deposit Cash\n"
           "4)PIN Change\n5)Transaction History\n"
           "6)Check current cash in the ATM\n7)Exit\n")
 
 
+# ===================== ATM operation functions ======================
+
+
 def consult_balance(accounts, user):
     """
+    Topics: functions, matrices, strings
     Inputs: The account's data and the user
     Outputs: The user's balance on screen
     Process:
     -It will take the user's balance from the accounts data
     -It will print the balance
+    Test case:
+    -If Pedro (user 0) has a balance of 17337, it prints
+    "Your balance is $17337 pesos"
     """
     balance = accounts[user][2]
-    print("\nYour balance is", "$"+str(balance), "pesos\n")
+    print("\nYour balance is", "$" + str(balance), "pesos\n")
 
 
 def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
     """
+    Topics: arithmetic operators, conditionals, loops, lists, matrices,
+    strings
     Inputs: The accounts data, the user, the bills denominations, the
     bills quantity and the amount of money to be withdrawn
     Outputs: The withdrawn bills and the total on screen
@@ -90,6 +116,10 @@ def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
     -Asks for confirmation
     -Updates the bills quantity and the user's balance
     -Shows the withdrawn bills and saves the operation in the history
+    Test case:
+    -With a balance of 17337 and the ATM bills [6, 13, 27, 41], the
+    user types 750 and Y: it gives 1 bill of $500, 1 of $200 and 1 of
+    $50, the balance changes to 16587 and the bills to [5, 12, 27, 40]
     """
     balance = accounts[user][2]
     if balance < 50:
@@ -126,7 +156,7 @@ def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
         remaining_cash = remaining_cash - bills_given * bills_denominations[i]
     if remaining_cash == 0:
         message = ("Are you sure you want to withdraw this quantity?: $"
-                   + str(withdraw_amount)+" pesos")
+                   + str(withdraw_amount) + " pesos")
         if keep_going(message):
             new_balance = balance - withdraw_amount
             for j in range(len(bills_denominations)):
@@ -136,8 +166,8 @@ def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
             for k in range(len(total_withdrawn_bills)):
                 if total_withdrawn_bills[k] > 0:
                     print("-", total_withdrawn_bills[k], "bills of",
-                          "$"+str(bills_denominations[k]))
-            print("TOTAL:", "$"+str(withdraw_amount), "pesos")
+                          "$" + str(bills_denominations[k]))
+            print("TOTAL:", "$" + str(withdraw_amount), "pesos")
             save_operation(accounts[user][0], "WITHDRAWAL",
                            withdraw_amount, new_balance)
         else:
@@ -148,6 +178,8 @@ def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
 
 def deposit_cash(accounts, user, bills_denominations, bills_quantity):
     """
+    Topics: arithmetic operators, conditionals, nested loops, lists,
+    matrices, strings
     Inputs: The accounts data, the user, the bills denominations, the
     bills quantity and the number of bills of each type
     Outputs: The deposited bills and the total on screen
@@ -160,30 +192,35 @@ def deposit_cash(accounts, user, bills_denominations, bills_quantity):
     -Asks for confirmation
     -Adds the bills to the bills quantity and the total to the balance
     -Shows the deposited bills and saves the operation in the history
+    Test case:
+    -With a balance of 1000, the user inserts 2 bills of $500, 1 of
+    $200, 0 of $100 and 3 of $50 and types Y: it deposits $1350, the
+    balance changes to 2350 and the bills to [8, 14, 27, 44]
     """
     print("\nAccepted bills:")
     for denomination in bills_denominations:
-        print("- $"+str(denomination))
+        print("- $" + str(denomination))
     print("Insert your bills...\n\n")
     total_deposited_bills = []
     total_money_deposited = 0
     balance = accounts[user][2]
     for i in range(len(bills_denominations)):
         while True:
-            amount_of_bills = input("How many $"+str(bills_denominations[i])
+            amount_of_bills = input("How many $" + str(bills_denominations[i])
                                     + " bills: ")
             amount_of_bills = amount_of_bills.strip().replace(" ", "")
             if amount_of_bills.isdigit():
                 amount_of_bills = int(amount_of_bills)
                 total_deposited_bills.append(amount_of_bills)
-                total_money_deposited += amount_of_bills*bills_denominations[i]
+                total_money_deposited += (amount_of_bills
+                                          * bills_denominations[i])
                 break
             else:
                 print("Only digits are accepted")
     if total_money_deposited == 0:
         print("No bills were inserted")
     else:
-        message = ("You are about to deposit $"+str(total_money_deposited)
+        message = ("You are about to deposit $" + str(total_money_deposited)
                    + " pesos\nDo you want to proceed?")
         if keep_going(message):
             for j in range(len(bills_quantity)):
@@ -194,73 +231,18 @@ def deposit_cash(accounts, user, bills_denominations, bills_quantity):
             for k in range(len(total_deposited_bills)):
                 if total_deposited_bills[k] > 0:
                     print("-", total_deposited_bills[k], "bills of",
-                          "$"+str(bills_denominations[k]), "pesos")
-            print("TOTAL DEPOSITED:", "$"+str(total_money_deposited), "pesos")
+                          "$" + str(bills_denominations[k]), "pesos")
+            print("TOTAL DEPOSITED:",
+                  "$" + str(total_money_deposited), "pesos")
             save_operation(accounts[user][0], "DEPOSIT",
                            total_money_deposited, new_balance)
         else:
             print("OPERATION CANCELLED")
 
 
-def save_operation(account_number, operation_type, amount,
-                   balance_after_operation):
-    """
-    Inputs: The account number, the operation type, the amount and the
-    balance after the operation
-    Outputs: A new line in the history file
-    Process:
-    -Gets the current date and time of the operation
-    -Converts all the data into text
-    -Joins the data with commas
-    -Adds the line at the end of the history file
-    """
-    operation_date = time.strftime("%Y/%m/%d")
-    operation_time = time.strftime("%H:%M")
-    operation_line = [account_number, operation_type, amount,
-                      balance_after_operation, operation_date, operation_time]
-    line = []
-    for value in operation_line:
-        line.append(str(value))
-    file = open("history.txt", "a")
-    file.write(",".join(line)+"\n")
-    file.close()
-
-
-def show_history(accounts, user):
-    """
-    Inputs: The accounts data and the user
-    Outputs: The user's operations on screen
-    Process:
-    -Shows the user's account number with dashes
-    -Reads the history file line by line
-    -If the line belongs to the user, it will print the date, time,
-    type, amount and balance after the operation
-    -If the user has no operations, it will print a message
-    -If the history file does not exist (FileNotFoundError), it means
-    that no operations have been made yet, so it will print the same
-    message
-    """
-    account_number = accounts[user][0]
-    print("Transaction history for account",
-          account_number_format(account_number)+":\n")
-    try:
-        file = open("history.txt", "r")
-        found = False
-        for line in file:
-            line = line.strip().split(",")
-            if account_number in line:
-                found = True
-                print(line[4], line[5]+" | "+line[1]+" | $"+line[2]
-                      + " pesos | Balance after operation: $"+line[3]+" pesos")
-        file.close()
-        if not found:
-            print("No operations yet")
-    except FileNotFoundError:
-        print("No operations yet")
-
-
 def pin_change(accounts, user):
     """
+    Topics: functions, conditionals, matrices
     Inputs: The accounts data, the user, the current PIN, the new PIN
     and the new PIN confirmation
     Outputs: The user's PIN updated
@@ -272,6 +254,11 @@ def pin_change(accounts, user):
     different from the current PIN and is not weak
     -Asks for the confirmation, if it is the same, it will update the
     PIN
+    Test case:
+    -If Pedro's PIN is 3784 and he types 3784, then 5829 and the
+    confirmation 5829, his PIN changes to 5829 and it prints
+    "PIN changed successfully"
+    -If he types a wrong current PIN, it prints "Incorrect PIN"
     """
     current_pin = read_pin("Current PIN: ")
     if current_pin != accounts[user][1]:
@@ -285,43 +272,59 @@ def pin_change(accounts, user):
 
 def atm_total_cash_sum(bills_denominations, bills_quantity):
     """
+    Topics: arithmetic operators, loops, lists, return values
     Inputs: The bills denominations and the bills quantity
     Outputs: ATM current cash
     Process:
     -For each type of bill, it multiplies the denomination by the
     quantity and adds it to the total
     -It will return the total cash
+    Test case:
+    -atm_total_cash_sum([500, 200, 100, 50], [6, 13, 27, 41]) returns
+    10350
     """
     total_cash = 0
     for i in range(len(bills_quantity)):
-        total_cash = total_cash + bills_quantity[i]*bills_denominations[i]
+        total_cash = total_cash + bills_quantity[i] * bills_denominations[i]
     return total_cash
 
 
 def atm_total_cash_show(bills_denominations, bills_quantity):
     """
+    Topics: loops, lists, strings
     Inputs: The bills denominations and the bills quantity
     Outputs: The ATM cash on screen
     Process:
     -Prints how many bills of each type the ATM has
     -Prints the total cash in the ATM
+    Test case:
+    -atm_total_cash_show([500, 200, 100, 50], [6, 13, 27, 41]) prints
+    "- 6 bills of $500" (and the other 3 types) and "TOTAL: $10350"
     """
     print("The total cash in the ATM is:\n")
     for i in range(len(bills_quantity)):
         print("-", bills_quantity[i], "bills of",
-              "$"+str(bills_denominations[i]), "\n")
+              "$" + str(bills_denominations[i]), "\n")
     total_cash = atm_total_cash_sum(bills_denominations, bills_quantity)
-    print("TOTAL:", "$"+str(total_cash), "\n")
+    print("TOTAL:", "$" + str(total_cash), "\n")
+
+
+# ===================== Login and PIN functions ======================
 
 
 def find_account(accounts, account_number):
     """
+    Topics: loops, conditionals, matrices, return values
     Inputs: The accounts data and the account number
-    Outputs: The user (row of the account in the data) or -1
+    Outputs: The user (row of the account in the accounts data) or -1
     Process:
     -Looks for the account number in the accounts data, row by row
     -If it finds it, it will return the row of the account
     -If no account has that number, it will return -1
+    Test case:
+    -If the accounts data has Pedro (row 0) and Alberto (row 1),
+    find_account(accounts, "6742907529582104") returns 1 and
+    find_account(accounts, "1234") returns -1
     """
     for i in range(len(accounts)):
         if accounts[i][0] == account_number:
@@ -331,9 +334,10 @@ def find_account(accounts, account_number):
 
 def authentication(accounts):
     """
+    Topics: nested loops, conditionals, matrices, strings
     Inputs: The accounts data, the account number and the account PIN
-    Outputs: The user (row of the account in the data), -1 if the
-    account is blocked or -2 if the user wants to go back
+    Outputs: The user (row of the account in the accounts data), -1 if
+    the account is blocked or -2 if the user wants to go back
     Process:
     -Asks for the account number and removes spaces and dashes
     -If the user types E or e, it will return -2 to go back to the
@@ -344,6 +348,11 @@ def authentication(accounts):
     -Asks for the PIN and gives up to 3 attempts
     -Returns the user if the PIN is correct
     -Blocks the account and returns -1 if the attempts are over
+    Test case:
+    -Typing 8649-0724-9072-4758 and the PIN 3784 returns 0 (Pedro)
+    -Typing E returns -2
+    -Typing Pedro's account and 3 wrong PINs blocks the account and
+    returns -1
     """
     print("\nHello there!!")
     print("-Remember that your account number has 16 digits")
@@ -377,12 +386,17 @@ def authentication(accounts):
 
 def read_pin(message):
     """
+    Topics: external libraries, strings
     Inputs: The message to show and the PIN typed by the user
     Outputs: The PIN without blank spaces
     Process:
     -Shows the message and asks for the PIN, hiding it with asterisks
     -Removes the blank spaces from the PIN
     -It will return the PIN
+    Test case:
+    -If the user types 3784, the screen shows **** and it returns
+    "3784"
+    -If the user types 37 84, it returns "3784"
     """
     pin = pwinput.pwinput(message, mask="*").strip().replace(" ", "")
     return pin
@@ -390,6 +404,7 @@ def read_pin(message):
 
 def is_pin_weak(pin):
     """
+    Topics: conditionals, strings
     Inputs: The PIN
     Outputs: True if the PIN is weak, False if it is not
     Process:
@@ -398,14 +413,16 @@ def is_pin_weak(pin):
     -Checks if the PIN repeats a pair of digits
     -Checks if the PIN has two pairs of repeated digits
     -If any of them is true, it will return True
+    Test case:
+    -is_pin_weak("1111"), is_pin_weak("6789"), is_pin_weak("1212") and
+    is_pin_weak("1122") return True
+    -is_pin_weak("5829") returns False
     """
-    ascending_digits = "0123456789"
-    descending_digits = "9876543210"
     if pin.count(pin[0]) == 4:
         return True
-    elif pin in ascending_digits:
+    elif pin in ASCENDING_DIGITS:
         return True
-    elif pin in descending_digits:
+    elif pin in DESCENDING_DIGITS:
         return True
     elif pin[0:2] == pin[2:4]:
         return True
@@ -417,11 +434,15 @@ def is_pin_weak(pin):
 
 def pin_creation_tips():
     """
+    Topics: functions, strings
     Inputs: No inputs
     Outputs: The tips for PIN creation on screen
     Process:
     -Prints the rules for a valid PIN
     -Prints examples of weak PINs that are not accepted
+    Test case:
+    -pin_creation_tips() prints the 6 tips, for example:
+    "-Avoid repeating a pair of digits, e.g. 1212 or 6969"
     """
     print("\nTIPS FOR PIN CREATION:")
     print("-Remember that your PIN needs to have only 4 digits")
@@ -434,6 +455,7 @@ def pin_creation_tips():
 
 def ask_new_pin(current_pin):
     """
+    Topics: loops, nested conditionals, strings
     Inputs: The current PIN, the new PIN and the new PIN confirmation
     Outputs: The new PIN
     Process:
@@ -444,6 +466,10 @@ def ask_new_pin(current_pin):
     -It will return the new PIN when everything is correct
     -For new accounts, the current PIN is an empty text, so that
     validation never blocks a valid PIN
+    Test case:
+    -ask_new_pin("3784"): if the user types 1111 (weak), then 3784
+    (the same as the current PIN), then 5829 and the confirmation
+    5829, it returns "5829"
     """
     while True:
         new_pin = read_pin("Create your new PIN: ")
@@ -460,8 +486,12 @@ def ask_new_pin(current_pin):
             print("\nInvalid PIN")
 
 
+# ================ Registration and helper functions =================
+
+
 def new_account(accounts):
     """
+    Topics: loops, conditionals, strings, matrices, libraries
     Inputs: The accounts data, the user's name, the PIN and the PIN
     confirmation
     Outputs: A new account added to the accounts data
@@ -474,6 +504,10 @@ def new_account(accounts):
     -Asks for the confirmation until it is the same
     -Shows the new account number
     -Adds the new account to the accounts data
+    Test case:
+    -If the user types "  ana   lopez " and the PIN 5821 two times, it
+    adds [new account number, "5821", 0, False, "Ana Lopez"] to the
+    accounts data and shows the new account number with dashes
     """
     print("\nHello there!!\nLet's begin with your username\n")
     while True:
@@ -487,7 +521,7 @@ def new_account(accounts):
         if find_account(accounts, new_account_number) == -1:
             break
     formatted_username = new_username.title()
-    print("\nHere we GO", formatted_username+"!", "\nLet's create your PIN!")
+    print("\nHere we GO", formatted_username + "!", "\nLet's create your PIN!")
     pin_creation_tips()
     new_pin = ask_new_pin("")
     print("\nYour account number is",
@@ -499,12 +533,16 @@ def new_account(accounts):
 
 def account_number_format(account_number):
     """
+    Topics: strings, return values
     Inputs: The account number
     Outputs: The account number with dashes
     Process:
     -Splits the account number into 4 groups of 4 digits
     -Joins the groups with dashes
     -It will return the account number with dashes
+    Test case:
+    -account_number_format("8649072490724758") returns
+    "8649-0724-9072-4758"
     """
     return "-".join([account_number[:4], account_number[4:8],
                     account_number[8:12], account_number[12:]])
@@ -512,14 +550,19 @@ def account_number_format(account_number):
 
 def keep_going(message):
     """
+    Topics: loops, conditionals, strings
     Inputs: The message of the question and the user's answer
     Outputs: True if the answer is Y, False if the answer is N
     Process:
     -Shows the message and asks for Y or N
     -If the answer is not Y or N, it will ask again
+    Test case:
+    -If the user types x, it asks again, and if the user then types y,
+    it returns True
+    -If the user types N, it returns False
     """
     while True:
-        answer = input(message+" (Y/N): ").strip().replace(" ", "")
+        answer = input(message + " (Y/N): ").strip().replace(" ", "")
         if answer.upper() == "Y":
             return True
         elif answer.upper() == "N":
@@ -528,14 +571,91 @@ def keep_going(message):
             print("Invalid Option, please type Y or N")
 
 
+# ========================== File functions ==========================
+
+
+def save_operation(account_number, operation_type, amount,
+                   balance_after_operation):
+    """
+    Topics: files, libraries, lists, loops, strings
+    Inputs: The account number, the operation type, the amount and the
+    balance after the operation
+    Outputs: A new line in the history file
+    Process:
+    -Gets the current date and time of the operation
+    -Converts all the data into text
+    -Joins the data with commas
+    -Adds the line at the end of the history file
+    Test case:
+    -save_operation("8649072490724758", "WITHDRAWAL", 750, 16587)
+    adds this line at the end of history.txt (with the current date
+    and time): 8649072490724758,WITHDRAWAL,750,16587,2026/11/26,13:40
+    """
+    operation_date = time.strftime("%Y/%m/%d")
+    operation_time = time.strftime("%H:%M")
+    operation_line = [account_number, operation_type, amount,
+                      balance_after_operation, operation_date, operation_time]
+    line = []
+    for value in operation_line:
+        line.append(str(value))
+    file = open("history.txt", "a")
+    file.write(",".join(line) + "\n")
+    file.close()
+
+
+def show_history(accounts, user):
+    """
+    Topics: files, error handling, loops, conditionals, strings
+    Inputs: The accounts data and the user
+    Outputs: The user's operations on screen
+    Process:
+    -Shows the user's account number with dashes
+    -Reads the history file line by line
+    -If the line belongs to the user, it will print the date, time,
+    type, amount and balance after the operation
+    -If the user has no operations, it will print a message
+    -If the history file does not exist (FileNotFoundError), it means
+    that no operations have been made yet, so it will print the same
+    message
+    Test case:
+    -If history.txt has the line from the save_operation test case,
+    for Pedro it prints: 2026/11/26 13:40 | WITHDRAWAL | $750 pesos |
+    Balance after operation: $16587 pesos
+    -If history.txt does not exist, it prints "No operations yet"
+    """
+    account_number = accounts[user][0]
+    print("Transaction history for account",
+          account_number_format(account_number) + ":\n")
+    try:
+        file = open("history.txt", "r")
+        found = False
+        for line in file:
+            line = line.strip().split(",")
+            if account_number in line:
+                found = True
+                print(line[4], line[5] + " | " + line[1] + " | $" + line[2]
+                      + " pesos | Balance after operation: $" + line[3]
+                      + " pesos")
+        file.close()
+        if not found:
+            print("No operations yet")
+    except FileNotFoundError:
+        print("No operations yet")
+
+
 def save_accounts(accounts):
     """
+    Topics: files, nested loops, matrices, strings
     Inputs: The accounts data
     Outputs: The accounts file updated
     Process:
     -Opens the accounts file and rewrites it
     -For each account, converts all the data into text
     -Joins the data with commas and writes it as a line
+    Test case:
+    -If the accounts data is [["8649072490724758", "3784", 17337,
+    False, "Pedro"]], accounts.txt is rewritten with only this line:
+    8649072490724758,3784,17337,False,Pedro
     """
     file = open("accounts.txt", "w")
     for row in accounts:
@@ -543,12 +663,14 @@ def save_accounts(accounts):
         for value in row:
             line.append(str(value))
         line_string = ",".join(line)
-        file.write(line_string+"\n")
+        file.write(line_string + "\n")
     file.close()
 
 
 def load_accounts():
     """
+    Topics: files, error handling, nested loops, conditionals,
+    matrices, strings
     Inputs: No inputs
     Outputs: The accounts data (empty if the accounts file does not
     exist)
@@ -562,6 +684,12 @@ def load_accounts():
     -If the accounts file does not exist (FileNotFoundError), it will
     print a message and the accounts data will stay empty
     -It will return the accounts data
+    Test case:
+    -If accounts.txt only has the line
+    8649072490724758,3784,17337,False,Pedro, it returns
+    [["8649072490724758", "3784", 17337, False, "Pedro"]]
+    -If accounts.txt does not exist, it prints a message and returns
+    an empty list
     """
     accounts = []
     try:
@@ -581,13 +709,17 @@ def load_accounts():
     return accounts
 
 
+# =========================== Main program ===========================
+
+
 def main():
     """
+    Topics: loops, conditionals, match, functions, lists
     Inputs: The options selected by the user
     Outputs: The ATM program running
     Process:
     -Loads the accounts data from the file
-    -Sets the bills denominations and the bills quantity of the ATM
+    -Sets the bills quantity of the ATM, bills denominations are constant
     -Shows the welcome menu until the user exits
     -Option 1: logs in the user. If the login is correct, it shows the
     operations menu until the user logs out. If the account is
@@ -596,9 +728,11 @@ def main():
     -Option 2: registers a new account
     -Option 3: ends the program
     -Saves the accounts data every time something changes
+    Test case:
+    -Choosing 1, typing Pedro's account and PIN, then 1 and N shows
+    his balance and LOGGED OUT; then choosing 3 ends the program
     """
     accounts = load_accounts()
-    bills_denominations = [500, 200, 100, 50]
     bills_quantity = [6, 13, 27, 41]
     while True:
         welcome_menu()
@@ -618,18 +752,18 @@ def main():
                                 consult_balance(accounts, user)
                             case "2":
                                 withdraw_cash(accounts, user,
-                                              bills_denominations,
+                                              BILLS_DENOMINATIONS,
                                               bills_quantity)
                             case "3":
                                 deposit_cash(accounts, user,
-                                             bills_denominations,
+                                             BILLS_DENOMINATIONS,
                                              bills_quantity)
                             case "4":
                                 pin_change(accounts, user)
                             case "5":
                                 show_history(accounts, user)
                             case "6":
-                                atm_total_cash_show(bills_denominations,
+                                atm_total_cash_show(BILLS_DENOMINATIONS,
                                                     bills_quantity)
                             case "7":
                                 break
