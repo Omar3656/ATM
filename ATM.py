@@ -32,6 +32,7 @@ starts with no accounts or with an empty history.
 
 import random
 import time
+
 import pwinput
 
 
@@ -59,7 +60,7 @@ def operations_options_menu():
           "6)Check current cash in the ATM\n7)Exit\n")
 
 
-def consult_balance(data, user):
+def consult_balance(accounts, user):
     """
     Inputs: The account's data and the user
     Outputs: The user's balance on screen
@@ -67,17 +68,18 @@ def consult_balance(data, user):
     -It will take the user's balance from the accounts data
     -It will print the balance
     """
-    balance = data[user][2]
+    balance = accounts[user][2]
     print("\nYour balance is", "$"+str(balance), "pesos\n")
 
 
-def withdraw_cash(data, user, bills_denominations, bills_quantity):
+def withdraw_cash(accounts, user, bills_denominations, bills_quantity):
     """
     Inputs: The accounts data, the user, the bills denominations, the
     bills quantity and the amount of money to be withdrawn
     Outputs: The withdrawn bills and the total on screen
     Process:
     -If the balance is less than 50, it will end the operation
+    -If the ATM has no cash, it will end the operation
     -Asks for the amount, removes blank spaces, commas and the $ sign,
     and validates that it only has digits
     -Validates that the amount is greater than 0, does not exceed the
@@ -89,58 +91,62 @@ def withdraw_cash(data, user, bills_denominations, bills_quantity):
     -Updates the bills quantity and the user's balance
     -Shows the withdrawn bills and saves the operation in the history
     """
-    balance = data[user][2]
+    balance = accounts[user][2]
     if balance < 50:
         print("Your balance is not enough to make a withdrawal")
         return
+    if atm_total_cash_sum(bills_denominations, bills_quantity) == 0:
+        print("The ATM has no cash available right now")
+        return
     while True:
-        withdraw = input("Amount of money to be withdrawn: $")
-        withdraw = withdraw.strip().replace(" ", "")
-        withdraw = withdraw.replace(",", "").replace("$", "")
-        if not withdraw.isdigit():
+        withdraw_amount = input("Amount of money to be withdrawn: $")
+        withdraw_amount = withdraw_amount.strip().replace(" ", "")
+        withdraw_amount = withdraw_amount.replace(",", "").replace("$", "")
+        if not withdraw_amount.isdigit():
             print("Only digits are accepted")
         else:
-            withdraw = int(withdraw)
-            if withdraw <= 0:
+            withdraw_amount = int(withdraw_amount)
+            if withdraw_amount <= 0:
                 print("Amount must be greater than 0")
-            elif withdraw > balance:
+            elif withdraw_amount > balance:
                 print("Amount to be withdrawn exceeds your balance")
-            elif withdraw % 50 != 0:
+            elif withdraw_amount % 50 != 0:
                 print("Amount needs to be multiple of 50")
-            elif withdraw > atm_total_cash_sum(bills_denominations,
-                                               bills_quantity):
+            elif withdraw_amount > atm_total_cash_sum(bills_denominations,
+                                                      bills_quantity):
                 print("Amount exceeds the total cash available in the ATM")
             else:
                 break
     total_withdrawn_bills = []
-    remaining_cash = withdraw
+    remaining_cash = withdraw_amount
     for i in range(len(bills_denominations)):
         bills_required = remaining_cash // bills_denominations[i]
-        bills = min(bills_required, bills_quantity[i])
-        total_withdrawn_bills.append(bills)
-        remaining_cash = remaining_cash - bills * bills_denominations[i]
+        bills_given = min(bills_required, bills_quantity[i])
+        total_withdrawn_bills.append(bills_given)
+        remaining_cash = remaining_cash - bills_given * bills_denominations[i]
     if remaining_cash == 0:
         message = ("Are you sure you want to withdraw this quantity?: $"
-                   + str(withdraw)+" pesos")
+                   + str(withdraw_amount)+" pesos")
         if keep_going(message):
-            new_balance = balance - withdraw
+            new_balance = balance - withdraw_amount
             for j in range(len(bills_denominations)):
                 bills_quantity[j] -= total_withdrawn_bills[j]
-            data[user][2] = new_balance
+            accounts[user][2] = new_balance
             print("You have withdrawn:")
             for k in range(len(total_withdrawn_bills)):
                 if total_withdrawn_bills[k] > 0:
                     print("-", total_withdrawn_bills[k], "bills of",
                           "$"+str(bills_denominations[k]))
-            print("TOTAL:", "$"+str(withdraw), "pesos")
-            save_operation(data[user][0], "WITHDRAWAL", withdraw, new_balance)
+            print("TOTAL:", "$"+str(withdraw_amount), "pesos")
+            save_operation(accounts[user][0], "WITHDRAWAL",
+                           withdraw_amount, new_balance)
         else:
             print("OPERATION CANCELLED")
     else:
         print("The ATM cannot dispense that exact amount")
 
 
-def deposit_cash(data, user, bills_denominations, bills_quantity):
+def deposit_cash(accounts, user, bills_denominations, bills_quantity):
     """
     Inputs: The accounts data, the user, the bills denominations, the
     bills quantity and the number of bills of each type
@@ -161,7 +167,7 @@ def deposit_cash(data, user, bills_denominations, bills_quantity):
     print("Insert your bills...\n\n")
     total_deposited_bills = []
     total_money_deposited = 0
-    balance = data[user][2]
+    balance = accounts[user][2]
     for i in range(len(bills_denominations)):
         while True:
             amount_of_bills = input("How many $"+str(bills_denominations[i])
@@ -183,14 +189,14 @@ def deposit_cash(data, user, bills_denominations, bills_quantity):
             for j in range(len(bills_quantity)):
                 bills_quantity[j] += total_deposited_bills[j]
             new_balance = balance + total_money_deposited
-            data[user][2] = new_balance
+            accounts[user][2] = new_balance
             print("You have deposited:")
             for k in range(len(total_deposited_bills)):
                 if total_deposited_bills[k] > 0:
                     print("-", total_deposited_bills[k], "bills of",
                           "$"+str(bills_denominations[k]), "pesos")
             print("TOTAL DEPOSITED:", "$"+str(total_money_deposited), "pesos")
-            save_operation(data[user][0], "DEPOSIT",
+            save_operation(accounts[user][0], "DEPOSIT",
                            total_money_deposited, new_balance)
         else:
             print("OPERATION CANCELLED")
@@ -220,7 +226,7 @@ def save_operation(account_number, operation_type, amount,
     file.close()
 
 
-def show_history(data, user):
+def show_history(accounts, user):
     """
     Inputs: The accounts data and the user
     Outputs: The user's operations on screen
@@ -234,7 +240,7 @@ def show_history(data, user):
     that no operations have been made yet, so it will print the same
     message
     """
-    account_number = data[user][0]
+    account_number = accounts[user][0]
     print("Transaction history for account",
           account_number_format(account_number)+":\n")
     try:
@@ -253,7 +259,7 @@ def show_history(data, user):
         print("No operations yet")
 
 
-def pin_change(data, user):
+def pin_change(accounts, user):
     """
     Inputs: The accounts data, the user, the current PIN, the new PIN
     and the new PIN confirmation
@@ -267,13 +273,13 @@ def pin_change(data, user):
     -Asks for the confirmation, if it is the same, it will update the
     PIN
     """
-    pin = read_pin("Current PIN: ")
-    if pin != data[user][1]:
+    current_pin = read_pin("Current PIN: ")
+    if current_pin != accounts[user][1]:
         print("Incorrect PIN")
         return
     pin_creation_tips()
     print("-Avoid using your current PIN")
-    data[user][1] = ask_new_pin(pin)
+    accounts[user][1] = ask_new_pin(current_pin)
     print("PIN changed successfully")
 
 
@@ -308,7 +314,7 @@ def atm_total_cash_show(bills_denominations, bills_quantity):
     print("TOTAL:", "$"+str(total_cash), "\n")
 
 
-def find_account(data, account_number):
+def find_account(accounts, account_number):
     """
     Inputs: The accounts data and the account number
     Outputs: The user (row of the account in the data) or -1
@@ -317,13 +323,13 @@ def find_account(data, account_number):
     -If it finds it, it will return the row of the account
     -If no account has that number, it will return -1
     """
-    for i in range(len(data)):
-        if data[i][0] == account_number:
+    for i in range(len(accounts)):
+        if accounts[i][0] == account_number:
             return i
     return -1
 
 
-def authentication(data):
+def authentication(accounts):
     """
     Inputs: The accounts data, the account number and the account PIN
     Outputs: The user (row of the account in the data), -1 if the
@@ -349,20 +355,20 @@ def authentication(data):
         account_number = account_number.replace(" ", "").replace("-", "")
         if account_number.upper() == "E":
             return -2
-        user = find_account(data, account_number)
+        user = find_account(accounts, account_number)
         if user == -1:
             print("ACCOUNT NOT FOUND")
-        elif data[user][3]:
+        elif accounts[user][3]:
             return -1
         else:
             print("\n-Remember that your PIN is only composed of 4 digits "
                   "with no special characters")
             while True:
                 account_pin = read_pin("\nAccount PIN: ")
-                if account_pin == data[user][1]:
+                if account_pin == accounts[user][1]:
                     return user
                 elif attempts == 1:
-                    data[user][3] = True
+                    accounts[user][3] = True
                     return -1
                 else:
                     attempts = attempts - 1
@@ -393,13 +399,13 @@ def is_pin_weak(pin):
     -Checks if the PIN has two pairs of repeated digits
     -If any of them is true, it will return True
     """
-    numbers_ascendent = "0123456789"
-    numbers_descendent = "9876543210"
+    ascending_digits = "0123456789"
+    descending_digits = "9876543210"
     if pin.count(pin[0]) == 4:
         return True
-    elif pin in numbers_ascendent:
+    elif pin in ascending_digits:
         return True
-    elif pin in numbers_descendent:
+    elif pin in descending_digits:
         return True
     elif pin[0:2] == pin[2:4]:
         return True
@@ -454,7 +460,7 @@ def ask_new_pin(current_pin):
             print("\nInvalid PIN")
 
 
-def new_account(data):
+def new_account(accounts):
     """
     Inputs: The accounts data, the user's name, the PIN and the PIN
     confirmation
@@ -478,17 +484,17 @@ def new_account(data):
             print("Invalid Username\n")
     while True:
         new_account_number = str(random.randint(0, 9999999999999999)).zfill(16)
-        if find_account(data, new_account_number) == -1:
+        if find_account(accounts, new_account_number) == -1:
             break
-    new_username_show = new_username.title()
-    print("\nHere we GO", new_username_show+"!", "\nLet's create your PIN!")
+    formatted_username = new_username.title()
+    print("\nHere we GO", formatted_username+"!", "\nLet's create your PIN!")
     pin_creation_tips()
     new_pin = ask_new_pin("")
     print("\nYour account number is",
           account_number_format(new_account_number),
           "\nYou have registered successfully!!")
-    new_user = [new_account_number, new_pin, 0, False, new_username_show]
-    data.append(new_user)
+    new_user = [new_account_number, new_pin, 0, False, formatted_username]
+    accounts.append(new_user)
 
 
 def account_number_format(account_number):
@@ -522,7 +528,7 @@ def keep_going(message):
             print("Invalid Option, please type Y or N")
 
 
-def save_accounts(data):
+def save_accounts(accounts):
     """
     Inputs: The accounts data
     Outputs: The accounts file updated
@@ -532,7 +538,7 @@ def save_accounts(data):
     -Joins the data with commas and writes it as a line
     """
     file = open("accounts.txt", "w")
-    for row in data:
+    for row in accounts:
         line = []
         for value in row:
             line.append(str(value))
@@ -548,6 +554,7 @@ def load_accounts():
     exist)
     Process:
     -Opens the accounts file and reads it line by line
+    -Skips the empty lines of the file
     -Splits each line by commas into a list
     -Converts the balance into int and the blocked state into True or
     False
@@ -556,21 +563,22 @@ def load_accounts():
     print a message and the accounts data will stay empty
     -It will return the accounts data
     """
-    data = []
+    accounts = []
     try:
         file = open("accounts.txt", "r")
         for line_in_file in file:
-            line_in_matriz = line_in_file.strip().split(",")
-            for value in range(len(line_in_matriz)):
-                if value == 2:
-                    line_in_matriz[value] = int(line_in_matriz[value])
-                elif value == 3:
-                    line_in_matriz[value] = line_in_matriz[value] == "True"
-            data.append(line_in_matriz)
+            if line_in_file.strip() != "":
+                account_row = line_in_file.strip().split(",")
+                for column in range(len(account_row)):
+                    if column == 2:
+                        account_row[column] = int(account_row[column])
+                    elif column == 3:
+                        account_row[column] = account_row[column] == "True"
+                accounts.append(account_row)
         file.close()
     except FileNotFoundError:
         print("There are no accounts yet, please register first")
-    return data
+    return accounts
 
 
 def main():
@@ -589,42 +597,45 @@ def main():
     -Option 3: ends the program
     -Saves the accounts data every time something changes
     """
-    data = load_accounts()
+    accounts = load_accounts()
     bills_denominations = [500, 200, 100, 50]
     bills_quantity = [6, 13, 27, 41]
     while True:
         welcome_menu()
-        option1 = input("Choose an option: ").strip().replace(" ", "")
-        match option1:
+        welcome_option = input("Choose an option: ").strip().replace(" ", "")
+        match welcome_option:
             case "1":
-                user = authentication(data)
+                user = authentication(accounts)
                 if user >= 0:
-                    print("\n\nWelcome Back,", data[user][4])
+                    print("\n\nWelcome Back,", accounts[user][4])
                     while True:
                         operations_options_menu()
-                        option2 = input("Choose an option: ")
-                        option2 = option2.strip().replace(" ", "")
-                        match option2:
+                        operation_option = input("Choose an option: ")
+                        operation_option = operation_option.strip()
+                        operation_option = operation_option.replace(" ", "")
+                        match operation_option:
                             case "1":
-                                consult_balance(data, user)
+                                consult_balance(accounts, user)
                             case "2":
-                                withdraw_cash(data, user, bills_denominations,
+                                withdraw_cash(accounts, user,
+                                              bills_denominations,
                                               bills_quantity)
                             case "3":
-                                deposit_cash(data, user, bills_denominations,
+                                deposit_cash(accounts, user,
+                                             bills_denominations,
                                              bills_quantity)
                             case "4":
-                                pin_change(data, user)
+                                pin_change(accounts, user)
                             case "5":
-                                show_history(data, user)
+                                show_history(accounts, user)
                             case "6":
                                 atm_total_cash_show(bills_denominations,
                                                     bills_quantity)
                             case "7":
                                 break
                             case _:
-                                print("Invalid Option")
-                        save_accounts(data)
+                                print("INVALID OPTION")
+                        save_accounts(accounts)
                         message = "Would you like to do another operation?"
                         if not keep_going(message):
                             break
@@ -633,14 +644,14 @@ def main():
                     print("ACCOUNT BLOCKED")
                 else:
                     print("Returning to main menu...")
-                save_accounts(data)
+                save_accounts(accounts)
             case "2":
-                new_account(data)
-                save_accounts(data)
+                new_account(accounts)
+                save_accounts(accounts)
             case "3":
                 break
             case _:
-                print("Invalid option")
+                print("INVALID OPTION")
 
 
 main()
