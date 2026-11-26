@@ -6,7 +6,9 @@ Automatic Teller Machines (ATMs) are essential components of modern financial in
 
 The objective of this project is to develop a functional ATM UI simulation that models both user-facing operations and its internal operation logic. Some of the features I want to include are: user authentication, transaction logging (history), real-time cash inventory, optimal bank-note dispensation algorithm (handling $50, $100, $200, and $500 denominations based on available physical stock), and an operation to change your current PIN to a new one.
 
-## Requirements
+## Solution:
+
+## Requirements:
 
 - Python 3.10 or newer because my program uses match and case
 - The external library **pwinput**, used to hide the PIN with asterisks while it is typed. Install it with:
@@ -17,7 +19,7 @@ The objective of this project is to develop a functional ATM UI simulation that 
 
   Documentation: https://pypi.org/project/pwinput/
 
-## How to run
+## How to run:
 
 1. Download or clone this repository.
 2. Keep the files: "ATM.py", "accounts.txt" and "history.txt" in the same folder.
@@ -27,7 +29,7 @@ The objective of this project is to develop a functional ATM UI simulation that 
    python ATM.py
    ```
 
-### Test accounts
+### Test accounts:
 
 | Name | Account number | PIN |
 |---|---|---|
@@ -51,13 +53,13 @@ The internal ATM digital system will already include the correct information suc
 ### Process:
 
 User´s authentication:
--Ask for the account Number
--Ask for the NIP
--Compare if account number exists in the ATM digital system
--Verify the PIN for the given account number
--Go to Menu if both are correct
--Display error message if one is incorrect (3 total attempts)
--If 3 attempts are used, block the account number and the session ends
+-Ask for the account Number   
+-Ask for the NIP   
+-Compare if account number exists in the ATM digital system   
+-Verify the PIN for the given account number   
+-Go to Menu if both are correct   
+-Display error message if one is incorrect (3 total attempts)   
+-If 3 attempts are used, block the account number and the session ends   
 
 Main Navigation Menu:
 -Display the available options (Withdraw cash, Deposit Cash, Consult balance, PIN change, Transaction history, Exit)
