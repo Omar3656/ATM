@@ -719,7 +719,8 @@ def main():
     Outputs: The ATM program running
     Process:
     -Loads the accounts data from the file
-    -Sets the bills quantity of the ATM, bills denominations are constant
+    -Sets the bills quantity of the ATM, bills denominations are
+    constant
     -Shows the welcome menu until the user exits
     -Option 1: logs in the user. If the login is correct, it shows the
     operations menu until the user logs out. If the account is
