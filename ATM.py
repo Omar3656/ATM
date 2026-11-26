@@ -255,21 +255,8 @@ def pin_change(data, user):
         return
     pin_creation_tips()
     print("-Avoid using your current PIN")
-    while True:
-        new_pin = read_pin("New PIN: ")
-        if new_pin.isdigit() == True and new_pin != pin and len(new_pin) == 4:
-            if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = read_pin("New PIN confirmation: ")
-                if new_pin != new_pin_confirmation:
-                    print("New PIN needs to be the same that the new PIN confirmation")
-                else:
-                    data[user][1] = new_pin
-                    print("PIN changed successfully!")
-                    return 
-            else:
-                print("Your PIN is too easy to guess, please check the tips above")
-        else:
-            print("\nInvalid PIN")
+    data[user][1] = ask_new_pin(pin)
+    print("PIN changed successfully")
 
 
 def atm_total_cash_sum(bills_denominations, bills_quantity):
@@ -301,6 +288,21 @@ def atm_total_cash_show(bills_denominations, bills_quantity):
     print("TOTAL:", "$"+str(atm_total_cash_sum(bills_denominations, bills_quantity)), "\n")
 
 
+def find_account(data, account_number):
+    """
+    Inputs: The accounts data and the account number
+    Outputs: The user (row of the account in the data) or -1
+    Process:
+    -Looks for the account number in the accounts data, row by row
+    -If it finds it, it will return the row of the account
+    -If no account has that number, it will return -1
+    """
+    for i in range(len(data)):
+        if data[i][0] == account_number:
+            return i
+    return -1
+
+
 def authentication(data):
     """
     Inputs: The accounts data, the account number and the account PIN
@@ -321,15 +323,11 @@ def authentication(data):
     print("-Remember that your account number has 16 digits\n-Do NOT use special characters other than '-' or blank spaces")
     print("You can write 'E' to go back")
     while True:
-        user = -1
         attempts = 3
         account_number = input("\nAccount number: ").strip().replace(" ", "").replace("-", "")
         if account_number.upper() == "E":
             return -2
-        for i in range(len(data)):
-            if account_number  == data[i][0]:
-                user = i
-                break
+        user = find_account(data, account_number)
         if user == -1:
             print("ACCOUNT NOT FOUND")
         elif data[user][3]:
@@ -405,6 +403,34 @@ def pin_creation_tips():
     print("-Avoid using two pairs of repeated digits, for example: 1122 or 7788")
 
 
+def ask_new_pin(current_pin):
+    """
+    Inputs: The current PIN, the new PIN and the new PIN confirmation
+    Outputs: The new PIN
+    Process:
+    -Asks for the new PIN and validates that it has 4 digits, is
+    different from the current PIN and is not weak
+    -Asks for the confirmation of the new PIN
+    -If something is wrong, it will print a message and ask again
+    -It will return the new PIN when everything is correct
+    -For new accounts, the current PIN is an empty text, so that
+    validation never blocks a valid PIN
+    """
+    while True:
+        new_pin = read_pin("Create your new PIN: ")
+        if new_pin.isdigit() == True and new_pin != current_pin and len(new_pin) == 4:
+            if is_pin_weak(new_pin) == False:
+                new_pin_confirmation = read_pin("New PIN confirmation: ")
+                if new_pin != new_pin_confirmation:
+                    print("Your PIN is different from the PIN confirmation")
+                else:
+                    return new_pin
+            else:
+                print("Your PIN is too easy to guess, please check the tips above")
+        else:
+            print("\nInvalid PIN")
+
+
 def new_account(data):
     """
     Inputs: The accounts data, the user's name, the PIN and the PIN
@@ -428,30 +454,13 @@ def new_account(data):
         else:
             print("Invalid Username\n")
     while True:
-        account_number_exists = False
         new_account_number = str(random.randint(0000000000000000, 9999999999999999)).zfill(16)
-        for user in range(len(data)):
-            if new_account_number == data[user][0]:
-                account_number_exists = True
-                break
-        if account_number_exists == False:
+        if find_account(data, new_account_number) == -1:
             break
     new_username_show = new_username.title()
     print("\nHere we GO", new_username_show+"!", "\nLet's create your PIN!")
     pin_creation_tips()
-    while True:
-        new_pin = read_pin("\nCreate your PIN: ")
-        if new_pin.isdigit() == True and len(new_pin) == 4:
-            if is_pin_weak(new_pin) == False:
-                new_pin_confirmation = read_pin("New PIN confirmation: ")
-                if new_pin_confirmation == new_pin:
-                    break
-                else:
-                    print("Your PIN is different from the PIN confirmation")
-            else:
-                print("Your PIN is too easy to guess, please check the tips above")
-        else:
-            print("Invalid PIN")
+    new_pin = ask_new_pin("")
     print("\nYour account number is", account_number_format(new_account_number), "\nYou have registered successfully!!")
     new_user = [new_account_number, new_pin, 0, False, new_username_show, float(0)]
     data.append(new_user)
