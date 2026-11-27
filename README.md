@@ -35,6 +35,23 @@ To solve this, I made a Python program, `ATM.py`, that runs in the terminal. It 
 - The libraries `random` and `time` are also used, but they come with Python, so they do not need to be installed.
 - The files `ATM.py`, `accounts.txt` and `history.txt` from this repository
 
+## New functions and Python documentation:
+
+The program uses these functions and tools. Each one has a link to its official documentation:
+
+| Function | What it does in the program | Documentation |
+|---|---|---|
+| `pwinput.pwinput()` | Reads the PIN and shows asterisks instead of the digits | [pwinput](https://pypi.org/project/pwinput/) |
+| `random.randint()` | Creates the random number of a new account | [random.randint](https://docs.python.org/3/library/random.html#random.randint) |
+| `str.zfill()` | Adds zeros at the start, so the account number always has 16 digits | [str.zfill](https://docs.python.org/3/library/stdtypes.html#str.zfill) |
+| `time.strftime()` | Gets the date and time of each withdrawal and deposit | [time.strftime](https://docs.python.org/3/library/time.html#time.strftime) |
+| `min()` | Chooses how many bills of each type the ATM can give | [min](https://docs.python.org/3/library/functions.html#min) |
+| `str.isdigit()` and `str.isalpha()` | Check that amounts and PINs only have digits, and that names only have letters | [str.isdigit](https://docs.python.org/3/library/stdtypes.html#str.isdigit), [str.isalpha](https://docs.python.org/3/library/stdtypes.html#str.isalpha) |
+| `str.split()`, `str.join()` and `str.title()` | Remove the extra spaces of the name and write it with capital letters | [str.split](https://docs.python.org/3/library/stdtypes.html#str.split), [str.join](https://docs.python.org/3/library/stdtypes.html#str.join), [str.title](https://docs.python.org/3/library/stdtypes.html#str.title) |
+| `str.count()` | Finds PINs with the same digit four times | [str.count](https://docs.python.org/3/library/stdtypes.html#str.count) |
+| `try` / `except FileNotFoundError` | Keeps the program working when a file does not exist | [Handling exceptions](https://docs.python.org/3/tutorial/errors.html#handling-exceptions) |
+| `match` / `case` | Chooses the option of each menu | [match statements](https://docs.python.org/3/tutorial/controlflow.html#match-statements) |
+
 ## How to run:
 
 These steps assume that Python 3.10 or newer is already installed. Everything is done from a terminal:
@@ -72,6 +89,8 @@ These steps assume that Python 3.10 or newer is already installed. Everything is
    ```
    python -m pip install pwinput
    ```
+
+**NOTE:** On some macOS and Linux computers, pip shows the error `externally-managed-environment`. In that case, run: `python3 -m pip install --user --break-system-packages pwinput`
 
 4. Run the program from that same folder:
 
