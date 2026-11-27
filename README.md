@@ -196,7 +196,7 @@ After every operation (except Exit), the accounts are saved in `accounts.txt` an
 
 ## Tests:
 
-Each test starts with the original `accounts.txt` and `history.txt` of this repository. The tests change these files, so to repeat them, restore the files with `git checkout accounts.txt history.txt`, or download them again with the curl commands of step 2.
+Each test starts with the original `accounts.txt` and `history.txt` of this repository. The tests change these files, so to repeat them, restore the files with `git checkout accounts.txt history.txt`, or download them again.
 
 | # | What to do | Expected result |
 |---|---|---|
